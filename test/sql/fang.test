@@ -1,0 +1,60 @@
+# name: test/sql/fang.test
+# group: [vgi_ioc]
+#
+# defang / refang text transforms and their round-trip. NULL in → NULL out.
+
+require-env VGI_IOC_WORKER
+
+statement ok
+LOAD vgi;
+
+statement ok
+ATTACH 'ioc' AS ioc (TYPE vgi, LOCATION '${VGI_IOC_WORKER}');
+
+statement ok
+SET search_path = 'ioc.main';
+
+# defang mangles scheme, dots, and @.
+query T
+SELECT defang('http://evil.example.com/path');
+----
+hxxp[://]evil[.]example[.]com/path
+
+query T
+SELECT defang('contact bad@evil.example.com');
+----
+contact bad[at]evil[.]example[.]com
+
+# refang is the inverse for the canonical defanged form.
+query T
+SELECT refang('hxxp[://]evil[.]example[.]com/path');
+----
+http://evil.example.com/path
+
+query T
+SELECT refang('bad[at]evil[.]example[.]com');
+----
+bad@evil.example.com
+
+# Round-trip: defang then refang recovers the live URL.
+query T
+SELECT refang(defang('http://evil.example.com/path'));
+----
+http://evil.example.com/path
+
+# NULL in → NULL out.
+query T
+SELECT defang(NULL);
+----
+NULL
+
+query T
+SELECT refang(NULL);
+----
+NULL
+
+statement ok
+USE memory;
+
+statement ok
+DETACH ioc;

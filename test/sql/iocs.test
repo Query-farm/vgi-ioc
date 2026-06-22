@@ -1,0 +1,101 @@
+# name: test/sql/iocs.test
+# group: [vgi_ioc]
+#
+# extract_iocs() table function (typed, deduplicated rows) plus the hash_type /
+# is_ioc classifiers. extract_iocs takes a CONSTANT text arg (DuckDB table
+# functions don't take subqueries), refangs it, and emits (type, value) rows.
+
+require-env VGI_IOC_WORKER
+
+statement ok
+LOAD vgi;
+
+statement ok
+ATTACH 'ioc' AS ioc (TYPE vgi, LOCATION '${VGI_IOC_WORKER}');
+
+statement ok
+SET search_path = 'ioc.main';
+
+# Full defanged report -> typed rows. ORDER BY for determinism. The URL host is
+# NOT separately reported as a domain (overlap policy).
+query TT
+SELECT "type", value
+FROM extract_iocs('Beacon to hxxp://evil[.]example[.]com/path from 10[.]0[.]0[.]5, md5 d41d8cd98f00b204e9800998ecf8427e, CVE-2024-1234')
+ORDER BY "type", value;
+----
+cve	CVE-2024-1234
+ipv4	10.0.0.5
+md5	d41d8cd98f00b204e9800998ecf8427e
+url	http://evil.example.com/path
+
+# Deduplication: a repeated CVE appears once.
+query I
+SELECT count(*) FROM extract_iocs('CVE-2024-1234 and again CVE-2024-1234') WHERE "type" = 'cve';
+----
+1
+
+# Empty text -> no rows.
+query I
+SELECT count(*) FROM extract_iocs('');
+----
+0
+
+# NULL text -> no rows.
+query I
+SELECT count(*) FROM extract_iocs(NULL);
+----
+0
+
+# hash_type by length.
+query T
+SELECT hash_type('d41d8cd98f00b204e9800998ecf8427e');
+----
+md5
+
+query T
+SELECT hash_type('da39a3ee5e6b4b0d3255bfef95601890afd80709');
+----
+sha1
+
+query T
+SELECT hash_type(repeat('a', 64));
+----
+sha256
+
+query T
+SELECT hash_type(repeat('a', 128));
+----
+sha512
+
+# Not a hash -> NULL.
+query T
+SELECT hash_type('not-a-hash');
+----
+NULL
+
+# is_ioc: true when an indicator (even defanged) is present, false otherwise.
+query I
+SELECT is_ioc('beacon to 10[.]0[.]0[.]5');
+----
+true
+
+query I
+SELECT is_ioc('CVE-2021-44228 found in logs');
+----
+true
+
+query I
+SELECT is_ioc('the quick brown fox jumps over the lazy dog');
+----
+false
+
+query I
+SELECT is_ioc(NULL);
+----
+NULL
+
+statement ok
+USE memory;
+
+statement ok
+DETACH ioc;

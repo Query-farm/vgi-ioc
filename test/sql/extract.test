@@ -1,0 +1,72 @@
+# name: test/sql/extract.test
+# group: [vgi_ioc]
+#
+# Per-type VARCHAR[] extractors. Each refangs its input first, so a defanged
+# report yields live indicators. UNNEST + ORDER BY for deterministic comparison.
+
+require-env VGI_IOC_WORKER
+
+statement ok
+LOAD vgi;
+
+statement ok
+ATTACH 'ioc' AS ioc (TYPE vgi, LOCATION '${VGI_IOC_WORKER}');
+
+statement ok
+SET search_path = 'ioc.main';
+
+# extract_ipv4 over a defanged IP -> live IP.
+query T
+SELECT UNNEST(extract_ipv4('beacon from 10[.]0[.]0[.]5 and 192[.]168[.]1[.]1')) AS ip ORDER BY ip;
+----
+10.0.0.5
+192.168.1.1
+
+# extract_urls refangs the scheme + dots.
+query T
+SELECT UNNEST(extract_urls('GET hxxp://evil[.]example[.]com/path'));
+----
+http://evil.example.com/path
+
+# extract_emails.
+query T
+SELECT UNNEST(extract_emails('phish from bad[at]evil[.]example[.]com today'));
+----
+bad@evil.example.com
+
+# extract_cves (CVE-YYYY-NNNN+), order preserved.
+query T
+SELECT UNNEST(extract_cves('exploiting CVE-2024-1234 and CVE-2021-44228')) AS c ORDER BY c;
+----
+CVE-2021-44228
+CVE-2024-1234
+
+# extract_hashes returns md5/sha1/sha256 by length.
+query T
+SELECT UNNEST(extract_hashes('drop d41d8cd98f00b204e9800998ecf8427e to disk'));
+----
+d41d8cd98f00b204e9800998ecf8427e
+
+# A standalone domain is extracted; the URL host is not double-counted here.
+query T
+SELECT UNNEST(extract_domains('c2 at cdn[.]malware-host[.]net only'));
+----
+cdn.malware-host.net
+
+# No matches -> empty list -> UNNEST yields no rows.
+query I
+SELECT count(*) FROM (SELECT UNNEST(extract_ipv4('no addresses in this sentence')) AS x);
+----
+0
+
+# NULL in -> NULL list -> UNNEST yields no rows.
+query I
+SELECT count(*) FROM (SELECT UNNEST(extract_ipv4(NULL)) AS x);
+----
+0
+
+statement ok
+USE memory;
+
+statement ok
+DETACH ioc;
