@@ -20,6 +20,29 @@ env:
   RUSTC_WRAPPER: "sccache"
 
 jobs:
+  metadata-quality:
+    name: metadata-quality (vgi-lint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.9
+
+      - name: Build worker (release)
+        run: cargo build --release --bin ioc-worker
+
+      - name: vgi-lint
+        uses: Query-farm/vgi-lint-check@v1
+        with:
+          location: "${{ github.workspace }}/target/release/ioc-worker"
+          fail-on: info
+
   build-test:
     name: fmt · clippy · build · unit tests
     runs-on: ubuntu-latest

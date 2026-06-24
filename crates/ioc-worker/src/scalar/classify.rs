@@ -9,7 +9,10 @@ use std::sync::Arc;
 use arrow_array::builder::{BooleanBuilder, StringBuilder};
 use arrow_array::{ArrayRef, RecordBatch};
 use arrow_schema::DataType;
-use vgi::{ArgSpec, BindParams, BindResponse, FunctionMetadata, ProcessParams, ScalarFunction};
+use vgi::{
+    ArgSpec, BindParams, BindResponse, FunctionExample, FunctionMetadata, ProcessParams,
+    ScalarFunction,
+};
 use vgi_rpc::{Result, RpcError};
 
 use crate::arrow_io::text_str;
@@ -32,6 +35,12 @@ impl ScalarFunction for HashType {
                           or NULL if it is not a recognized hash"
                 .into(),
             return_type: Some(DataType::Utf8),
+            examples: vec![FunctionExample {
+                sql: "SELECT ioc.main.hash_type('d41d8cd98f00b204e9800998ecf8427e');".into(),
+                description: "Classify a 32-character hex string as an MD5 hash (returns 'md5')."
+                    .into(),
+                expected_output: None,
+            }],
             ..Default::default()
         }
     }
@@ -82,6 +91,13 @@ impl ScalarFunction for IsIoc {
         FunctionMetadata {
             description: "True if the text contains ANY recognizable IOC (refangs first)".into(),
             return_type: Some(DataType::Boolean),
+            examples: vec![FunctionExample {
+                sql: "SELECT ioc.main.is_ioc('beacon to 10[.]0[.]0[.]5');".into(),
+                description: "Test whether free text contains any indicator of compromise \
+                              (returns true)."
+                    .into(),
+                expected_output: None,
+            }],
             ..Default::default()
         }
     }

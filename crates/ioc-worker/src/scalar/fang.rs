@@ -9,7 +9,10 @@ use std::sync::Arc;
 use arrow_array::builder::StringBuilder;
 use arrow_array::{ArrayRef, RecordBatch};
 use arrow_schema::DataType;
-use vgi::{ArgSpec, BindParams, BindResponse, FunctionMetadata, ProcessParams, ScalarFunction};
+use vgi::{
+    ArgSpec, BindParams, BindResponse, FunctionExample, FunctionMetadata, ProcessParams,
+    ScalarFunction,
+};
 use vgi_rpc::{Result, RpcError};
 
 use crate::arrow_io::text_str;
@@ -26,6 +29,8 @@ pub struct Fang {
     dir: Dir,
     name: &'static str,
     desc: &'static str,
+    example_sql: &'static str,
+    example_desc: &'static str,
 }
 
 impl Fang {
@@ -35,6 +40,9 @@ impl Fang {
             name: "defang",
             desc: "Defang indicators in text so they are safe to share \
                    (http->hxxp, .->[.], @->[at], ://->[://])",
+            example_sql: "SELECT ioc.main.defang('http://evil.com/x');",
+            example_desc: "Defang a live URL so it is safe to paste into a report \
+                           (returns 'hxxp[://]evil[.]com/x').",
         }
     }
 
@@ -44,6 +52,9 @@ impl Fang {
             name: "refang",
             desc: "Refang defanged indicators back to live form \
                    (hxxp->http, [.]->., [at]->@, [://]->://)",
+            example_sql: "SELECT ioc.main.refang('hxxp://evil[.]com');",
+            example_desc: "Refang a defanged URL back to live form (returns \
+                           'http://evil.com').",
         }
     }
 }
@@ -57,6 +68,11 @@ impl ScalarFunction for Fang {
         FunctionMetadata {
             description: self.desc.into(),
             return_type: Some(DataType::Utf8),
+            examples: vec![FunctionExample {
+                sql: self.example_sql.into(),
+                description: self.example_desc.into(),
+                expected_output: None,
+            }],
             ..Default::default()
         }
     }

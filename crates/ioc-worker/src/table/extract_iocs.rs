@@ -13,7 +13,7 @@ use arrow_array::builder::StringBuilder;
 use arrow_array::{ArrayRef, RecordBatch};
 use arrow_schema::{DataType, Field, Schema, SchemaRef};
 use vgi::table_function::{TableFunction, TableProducer};
-use vgi::{ArgSpec, BindParams, BindResponse, FunctionMetadata, ProcessParams};
+use vgi::{ArgSpec, BindParams, BindResponse, FunctionExample, FunctionMetadata, ProcessParams};
 use vgi_rpc::{OutputCollector, Result, RpcError};
 
 use crate::ioc::{self, Indicator};
@@ -39,6 +39,24 @@ impl TableFunction for ExtractIocs {
             description: "Extract every distinct IOC from text as (type, value) rows \
                           (refangs first; deduplicated)"
                 .into(),
+            examples: vec![FunctionExample {
+                sql: "SELECT * FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from \
+                      10[.]0[.]0[.]5');"
+                    .into(),
+                description: "Extract every distinct indicator from a defanged report as \
+                              (type, value) rows."
+                    .into(),
+                expected_output: None,
+            }],
+            tags: vec![(
+                "vgi.columns_md".into(),
+                "| column | type | description |\n\
+                 |---|---|---|\n\
+                 | `type` | VARCHAR | Indicator type: one of `ipv4`, `ipv6`, `url`, `email`, \
+                 `domain`, `md5`, `sha1`, `sha256`, `sha512`, `cve`. |\n\
+                 | `value` | VARCHAR | The refanged (live-form) indicator value. |"
+                    .into(),
+            )],
             ..Default::default()
         }
     }

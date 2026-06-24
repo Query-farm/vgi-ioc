@@ -4,7 +4,10 @@ use std::sync::Arc;
 
 use arrow_array::{ArrayRef, RecordBatch, StringArray};
 use arrow_schema::DataType;
-use vgi::{ArgSpec, BindParams, BindResponse, FunctionMetadata, ProcessParams, ScalarFunction};
+use vgi::{
+    ArgSpec, BindParams, BindResponse, FunctionExample, FunctionMetadata, ProcessParams,
+    ScalarFunction,
+};
 use vgi_rpc::{Result, RpcError};
 
 pub struct IocVersion;
@@ -18,6 +21,11 @@ impl ScalarFunction for IocVersion {
         FunctionMetadata {
             description: "Returns the ioc worker version string".into(),
             return_type: Some(DataType::Utf8),
+            examples: vec![FunctionExample {
+                sql: "SELECT ioc.main.ioc_version();".into(),
+                description: "Return the ioc worker version string.".into(),
+                expected_output: None,
+            }],
             ..Default::default()
         }
     }

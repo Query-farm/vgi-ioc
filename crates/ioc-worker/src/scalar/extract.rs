@@ -9,7 +9,10 @@
 use arrow_array::builder::ListBuilder;
 use arrow_array::builder::StringBuilder;
 use arrow_array::{ArrayRef, RecordBatch};
-use vgi::{ArgSpec, BindParams, BindResponse, FunctionMetadata, ProcessParams, ScalarFunction};
+use vgi::{
+    ArgSpec, BindParams, BindResponse, FunctionExample, FunctionMetadata, ProcessParams,
+    ScalarFunction,
+};
 use vgi_rpc::{Result, RpcError};
 
 use crate::arrow_io::{finish_list, list_varchar_builder, list_varchar_type, text_str};
@@ -22,6 +25,8 @@ pub struct Extract {
     name: &'static str,
     desc: &'static str,
     func: ExtractFn,
+    example_sql: &'static str,
+    example_desc: &'static str,
 }
 
 impl Extract {
@@ -30,6 +35,8 @@ impl Extract {
             name: "extract_ipv4",
             desc: "Extract IPv4 addresses (refangs first; private/reserved included) as VARCHAR[]",
             func: ioc::extract_ipv4,
+            example_sql: "SELECT UNNEST(ioc.main.extract_ipv4('beacon from 10[.]0[.]0[.]5'));",
+            example_desc: "Pull the defanged IPv4 address out of a report (returns '10.0.0.5').",
         }
     }
     pub fn ipv6() -> Self {
@@ -37,6 +44,8 @@ impl Extract {
             name: "extract_ipv6",
             desc: "Extract IPv6 addresses (refangs first; canonicalized) as VARCHAR[]",
             func: ioc::extract_ipv6,
+            example_sql: "SELECT UNNEST(ioc.main.extract_ipv6('C2 at 2001:db8::1 observed'));",
+            example_desc: "Pull an IPv6 address out of free text (returns '2001:db8::1').",
         }
     }
     pub fn domains() -> Self {
@@ -44,6 +53,10 @@ impl Extract {
             name: "extract_domains",
             desc: "Extract bare domains (refangs first; URL/e-mail hosts excluded) as VARCHAR[]",
             func: ioc::extract_domains,
+            example_sql:
+                "SELECT UNNEST(ioc.main.extract_domains('callback to evil[.]example[.]com'));",
+            example_desc: "Pull a bare defanged domain out of a report \
+                           (returns 'evil.example.com').",
         }
     }
     pub fn urls() -> Self {
@@ -51,6 +64,10 @@ impl Extract {
             name: "extract_urls",
             desc: "Extract URLs (refangs first) as VARCHAR[]",
             func: ioc::extract_urls,
+            example_sql:
+                "SELECT UNNEST(ioc.main.extract_urls('payload from hxxp://evil[.]com/x'));",
+            example_desc: "Pull a defanged URL out of a report \
+                           (returns 'http://evil.com/x').",
         }
     }
     pub fn emails() -> Self {
@@ -58,6 +75,9 @@ impl Extract {
             name: "extract_emails",
             desc: "Extract e-mail addresses (refangs first) as VARCHAR[]",
             func: ioc::extract_emails,
+            example_sql: "SELECT UNNEST(ioc.main.extract_emails('phish from bad[at]evil[.]com'));",
+            example_desc: "Pull a defanged e-mail address out of a report \
+                           (returns 'bad@evil.com').",
         }
     }
     pub fn hashes() -> Self {
@@ -65,6 +85,9 @@ impl Extract {
             name: "extract_hashes",
             desc: "Extract md5/sha1/sha256 hashes (refangs first) as VARCHAR[]",
             func: ioc::extract_hashes,
+            example_sql: "SELECT UNNEST(ioc.main.extract_hashes('sample md5 d41d8cd98f00b204e9800998ecf8427e'));",
+            example_desc: "Pull a file hash out of a report \
+                           (returns 'd41d8cd98f00b204e9800998ecf8427e').",
         }
     }
     pub fn cves() -> Self {
@@ -72,6 +95,9 @@ impl Extract {
             name: "extract_cves",
             desc: "Extract CVE identifiers (refangs first) as VARCHAR[]",
             func: ioc::extract_cves,
+            example_sql:
+                "SELECT UNNEST(ioc.main.extract_cves('exploiting CVE-2024-1234 in the wild'));",
+            example_desc: "Pull a CVE identifier out of a report (returns 'CVE-2024-1234').",
         }
     }
 }
@@ -85,6 +111,11 @@ impl ScalarFunction for Extract {
         FunctionMetadata {
             description: self.desc.into(),
             return_type: Some(list_varchar_type()),
+            examples: vec![FunctionExample {
+                sql: self.example_sql.into(),
+                description: self.example_desc.into(),
+                expected_output: None,
+            }],
             ..Default::default()
         }
     }
