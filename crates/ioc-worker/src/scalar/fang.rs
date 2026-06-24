@@ -31,6 +31,10 @@ pub struct Fang {
     desc: &'static str,
     example_sql: &'static str,
     example_desc: &'static str,
+    title: &'static str,
+    desc_llm: &'static str,
+    desc_md: &'static str,
+    keywords: &'static str,
 }
 
 impl Fang {
@@ -43,6 +47,16 @@ impl Fang {
             example_sql: "SELECT ioc.main.defang('http://evil.com/x');",
             example_desc: "Defang a live URL so it is safe to paste into a report \
                            (returns 'hxxp[://]evil[.]com/x').",
+            title: "Defang Indicators",
+            desc_llm: "Rewrite the live indicators in a string into a neutralized, \
+                       safe-to-share form so pasting a report into chat, e-mail, or a ticket \
+                       cannot accidentally create a clickable link or live address: \
+                       `http`->`hxxp`, `.`->`[.]`, `@`->`[at]`, and `://`->`[://]`. Pure text \
+                       transform; NULL in -> NULL out. The inverse of `refang`.",
+            desc_md: "Defang indicators so they are safe to share, e.g. \
+                      `defang('http://evil.com/x')` -> `'hxxp[://]evil[.]com/x'`.",
+            keywords: "defang, neutralize, sanitize, safe to share, hxxp, bracket dots, \
+                       make safe, redact link, indicator, url, domain",
         }
     }
 
@@ -55,6 +69,15 @@ impl Fang {
             example_sql: "SELECT ioc.main.refang('hxxp://evil[.]com');",
             example_desc: "Refang a defanged URL back to live form (returns \
                            'http://evil.com').",
+            title: "Refang Indicators",
+            desc_llm: "Restore defanged indicators in a string back to their live, canonical \
+                       form: `hxxp`->`http`, `[.]`->`.`, `[at]`->`@`, and `[://]`->`://`. The \
+                       inverse of `defang`. Pure text transform; NULL in -> NULL out. The \
+                       extractors call this internally so defanged indicators are still matched.",
+            desc_md: "Refang defanged indicators back to live form, e.g. \
+                      `refang('hxxp://evil[.]com')` -> `'http://evil.com'`.",
+            keywords: "refang, restore, undefang, rehydrate, live form, canonical, hxxp to http, \
+                       unbracket, indicator, url, domain",
         }
     }
 }
@@ -73,6 +96,13 @@ impl ScalarFunction for Fang {
                 description: self.example_desc.into(),
                 expected_output: None,
             }],
+            tags: crate::meta::object_tags(
+                self.title,
+                self.desc_llm,
+                self.desc_md,
+                self.keywords,
+                "scalar/fang.rs",
+            ),
             ..Default::default()
         }
     }

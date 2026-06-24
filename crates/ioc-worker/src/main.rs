@@ -24,6 +24,7 @@
 
 mod arrow_io;
 mod ioc;
+mod meta;
 mod scalar;
 mod table;
 
@@ -48,6 +49,17 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                 .to_string(),
         ),
         tags: vec![
+            (
+                "vgi.title".to_string(),
+                "IOC Extraction & Defang/Refang".to_string(),
+            ),
+            (
+                "vgi.keywords".to_string(),
+                "ioc, indicator of compromise, cyber threat intelligence, cti, defang, refang, \
+                 extract, ipv4, ipv6, domain, url, email, hash, md5, sha1, sha256, sha512, cve, \
+                 threat hunting, malware, security"
+                    .to_string(),
+            ),
             (
                 "vgi.description_llm".to_string(),
                 "Parse cyber-threat indicators of compromise (IOCs) out of free-text reports: \
@@ -92,6 +104,23 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                     .to_string(),
             ),
             tags: vec![
+                ("vgi.title".to_string(), "IOC — main".to_string()),
+                (
+                    "vgi.keywords".to_string(),
+                    "ioc, indicator of compromise, defang, refang, extract_ipv4, extract_ipv6, \
+                     extract_domains, extract_urls, extract_emails, extract_hashes, extract_cves, \
+                     hash_type, is_ioc, extract_iocs, cyber threat intelligence, cti, security"
+                        .to_string(),
+                ),
+                // VGI123 classifying tags (bare keys: domain/category/topic) for faceting.
+                ("domain".to_string(), "security".to_string()),
+                ("category".to_string(), "threat-intelligence".to_string()),
+                ("topic".to_string(), "ioc-extraction".to_string()),
+                (
+                    "vgi.source_url".to_string(),
+                    "https://github.com/Query-farm/vgi-ioc/blob/main/crates/ioc-worker/src/main.rs"
+                        .to_string(),
+                ),
                 (
                     "vgi.description_llm".to_string(),
                     "IOC extraction and defang/refang functions: pull IPv4/IPv6, domains, URLs, \
@@ -103,6 +132,19 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                     "vgi.description_md".to_string(),
                     "IOC extraction and defang/refang functions for cyber-threat intelligence, \
                      over Apache Arrow."
+                        .to_string(),
+                ),
+                // VGI506 representative example queries for the schema.
+                (
+                    "vgi.example_queries".to_string(),
+                    "SELECT ioc.main.defang('http://evil.com/x');\n\
+                     SELECT ioc.main.refang('hxxp://evil[.]com');\n\
+                     SELECT UNNEST(ioc.main.extract_ipv4('beacon from 10[.]0[.]0[.]5'));\n\
+                     SELECT UNNEST(ioc.main.extract_urls('payload from hxxp://evil[.]com/x'));\n\
+                     SELECT ioc.main.hash_type('d41d8cd98f00b204e9800998ecf8427e');\n\
+                     SELECT ioc.main.is_ioc('exploiting CVE-2024-1234');\n\
+                     SELECT * FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from \
+                     10[.]0[.]0[.]5');"
                         .to_string(),
                 ),
             ],

@@ -41,6 +41,18 @@ impl ScalarFunction for HashType {
                     .into(),
                 expected_output: None,
             }],
+            tags: crate::meta::object_tags(
+                "Classify Hash Type",
+                "Classify a hexadecimal string as a file-hash algorithm by its length: 32 hex \
+                 chars -> 'md5', 40 -> 'sha1', 64 -> 'sha256', 128 -> 'sha512'. Returns NULL for \
+                 anything that is not a recognized hash length. Use it to label extracted hash \
+                 indicators by algorithm.",
+                "Classify a hex string by length as `md5`/`sha1`/`sha256`/`sha512`, or NULL, \
+                 e.g. `hash_type('d41d8cd98f00b204e9800998ecf8427e')` -> `'md5'`.",
+                "hash type, hash_type, md5, sha1, sha256, sha512, classify hash, hash length, \
+                 fingerprint, file hash, algorithm",
+                "scalar/classify.rs",
+            ),
             ..Default::default()
         }
     }
@@ -98,6 +110,18 @@ impl ScalarFunction for IsIoc {
                     .into(),
                 expected_output: None,
             }],
+            tags: crate::meta::object_tags(
+                "Text Contains IOC",
+                "Return true when the given free text contains ANY recognizable indicator of \
+                 compromise — an IPv4/IPv6 address, domain, URL, e-mail, file hash, or CVE id. \
+                 The text is refanged first, so defanged indicators (hxxp, [.], [at]) still \
+                 count. Use it as a fast predicate to flag or filter rows worth deeper extraction.",
+                "True if text contains any IOC (refangs first), e.g. \
+                 `is_ioc('beacon to 10[.]0[.]0[.]5')` -> `true`.",
+                "is_ioc, contains ioc, has indicator, detect, predicate, flag, screen, triage, \
+                 threat detection",
+                "scalar/classify.rs",
+            ),
             ..Default::default()
         }
     }

@@ -26,6 +26,15 @@ impl ScalarFunction for IocVersion {
                 description: "Return the ioc worker version string.".into(),
                 expected_output: None,
             }],
+            tags: crate::meta::object_tags(
+                "IOC Worker Version",
+                "Return the semantic version string of the running ioc worker binary. Takes no \
+                 arguments. Useful for diagnostics, capability checks, and confirming which build \
+                 of the IOC tooling is attached.",
+                "Return the ioc worker version string, e.g. `ioc_version()` -> `'0.1.0'`.",
+                "version, ioc_version, build, semantic version, diagnostics, capability, about",
+                "scalar/version.rs",
+            ),
             ..Default::default()
         }
     }

@@ -18,6 +18,37 @@ use vgi_rpc::{OutputCollector, Result, RpcError};
 
 use crate::ioc::{self, Indicator};
 
+/// Guaranteed-runnable, catalog-qualified examples (VGI509). Each `sql` is
+/// self-contained and re-runnable against an attached `ioc` worker. We omit
+/// `expected_result` deliberately — the linter only needs each query to execute
+/// cleanly, and pinning exact match output would be brittle.
+const EXECUTABLE_EXAMPLES: &str = r#"[
+  {
+    "description": "Extract every distinct indicator from a defanged report as (type, value) rows.",
+    "sql": "SELECT type, value FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5') ORDER BY type, value"
+  },
+  {
+    "description": "Defang a live URL so it is safe to paste into a report.",
+    "sql": "SELECT ioc.main.defang('http://evil.com/x') AS safe"
+  },
+  {
+    "description": "Refang a defanged URL back to its live form.",
+    "sql": "SELECT ioc.main.refang('hxxp://evil[.]com') AS live"
+  },
+  {
+    "description": "Pull the defanged IPv4 address out of a report.",
+    "sql": "SELECT UNNEST(ioc.main.extract_ipv4('beacon from 10[.]0[.]0[.]5')) AS ip"
+  },
+  {
+    "description": "Classify a 32-character hex string as an MD5 hash.",
+    "sql": "SELECT ioc.main.hash_type('d41d8cd98f00b204e9800998ecf8427e') AS kind"
+  },
+  {
+    "description": "Test whether free text contains any indicator of compromise.",
+    "sql": "SELECT ioc.main.is_ioc('exploiting CVE-2024-1234') AS hit"
+  }
+]"#;
+
 pub struct ExtractIocs;
 
 fn output_schema() -> SchemaRef {
@@ -35,6 +66,32 @@ impl TableFunction for ExtractIocs {
     }
 
     fn metadata(&self) -> FunctionMetadata {
+        let mut tags = crate::meta::object_tags(
+            "Extract All IOCs",
+            "Scan free text and return every distinct indicator of compromise as (type, value) \
+             rows, one row per indicator. Covered types are ipv4, ipv6, url, email, domain, md5, \
+             sha1, sha256, sha512, and cve. The text is refanged first so defanged indicators \
+             are found, results are deduplicated, and URL/e-mail hosts are not double-reported as \
+             bare domains. The text argument is a bind-time constant; a NULL or empty text yields \
+             zero rows. Use this as the one-shot table function when you want all indicator types \
+             at once instead of calling each extractor separately.",
+            "Extract every distinct IOC from text as `(type, value)` rows (refangs first; \
+             deduplicated), e.g. \
+             `SELECT * FROM extract_iocs('beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5')`.",
+            "extract iocs, all indicators, ioc table, type value, ipv4, ipv6, url, email, \
+             domain, hash, cve, threat report, refang, deduplicate, one-shot",
+            "table/extract_iocs.rs",
+        );
+        tags.push((
+            "vgi.columns_md".into(),
+            "| column | type | description |\n\
+             |---|---|---|\n\
+             | `type` | VARCHAR | Indicator type: one of `ipv4`, `ipv6`, `url`, `email`, \
+             `domain`, `md5`, `sha1`, `sha256`, `sha512`, `cve`. |\n\
+             | `value` | VARCHAR | The refanged (live-form) indicator value. |"
+                .into(),
+        ));
+        tags.push(("vgi.executable_examples".into(), EXECUTABLE_EXAMPLES.into()));
         FunctionMetadata {
             description: "Extract every distinct IOC from text as (type, value) rows \
                           (refangs first; deduplicated)"
@@ -48,15 +105,7 @@ impl TableFunction for ExtractIocs {
                     .into(),
                 expected_output: None,
             }],
-            tags: vec![(
-                "vgi.columns_md".into(),
-                "| column | type | description |\n\
-                 |---|---|---|\n\
-                 | `type` | VARCHAR | Indicator type: one of `ipv4`, `ipv6`, `url`, `email`, \
-                 `domain`, `md5`, `sha1`, `sha256`, `sha512`, `cve`. |\n\
-                 | `value` | VARCHAR | The refanged (live-form) indicator value. |"
-                    .into(),
-            )],
+            tags,
             ..Default::default()
         }
     }

@@ -27,6 +27,10 @@ pub struct Extract {
     func: ExtractFn,
     example_sql: &'static str,
     example_desc: &'static str,
+    title: &'static str,
+    desc_llm: &'static str,
+    desc_md: &'static str,
+    keywords: &'static str,
 }
 
 impl Extract {
@@ -37,6 +41,16 @@ impl Extract {
             func: ioc::extract_ipv4,
             example_sql: "SELECT UNNEST(ioc.main.extract_ipv4('beacon from 10[.]0[.]0[.]5'));",
             example_desc: "Pull the defanged IPv4 address out of a report (returns '10.0.0.5').",
+            title: "Extract IPv4 Addresses",
+            desc_llm: "Extract every distinct IPv4 address from free text and return them as a \
+                       VARCHAR list. The input is refanged first, so defanged forms like \
+                       '10[.]0[.]0[.]5' are matched; private and reserved ranges are kept because \
+                       they are still real indicators in a report. NULL in -> NULL list; no \
+                       matches -> empty list.",
+            desc_md: "Extract IPv4 addresses from text as `VARCHAR[]` (refangs first), e.g. \
+                      `extract_ipv4('beacon from 10[.]0[.]0[.]5')` -> `['10.0.0.5']`.",
+            keywords: "extract ipv4, ip address, ipv4, ip, network indicator, beacon, c2, \
+                       refang, extract ip",
         }
     }
     pub fn ipv6() -> Self {
@@ -46,6 +60,15 @@ impl Extract {
             func: ioc::extract_ipv6,
             example_sql: "SELECT UNNEST(ioc.main.extract_ipv6('C2 at 2001:db8::1 observed'));",
             example_desc: "Pull an IPv6 address out of free text (returns '2001:db8::1').",
+            title: "Extract IPv6 Addresses",
+            desc_llm: "Extract every distinct IPv6 address from free text and return them as a \
+                       VARCHAR list, canonicalized to their compressed form. The input is \
+                       refanged first. NULL in -> NULL list; no matches -> empty list.",
+            desc_md: "Extract IPv6 addresses from text as `VARCHAR[]` (refangs first, \
+                      canonicalized), e.g. `extract_ipv6('C2 at 2001:db8::1')` -> \
+                      `['2001:db8::1']`.",
+            keywords: "extract ipv6, ipv6, ip address, ip, network indicator, c2, refang, \
+                       extract ip",
         }
     }
     pub fn domains() -> Self {
@@ -57,6 +80,17 @@ impl Extract {
                 "SELECT UNNEST(ioc.main.extract_domains('callback to evil[.]example[.]com'));",
             example_desc: "Pull a bare defanged domain out of a report \
                            (returns 'evil.example.com').",
+            title: "Extract Bare Domains",
+            desc_llm: "Extract every distinct bare domain name from free text and return them as \
+                       a VARCHAR list. The input is refanged first. Hosts already claimed by a \
+                       URL or e-mail are excluded to avoid double-reporting, and a domain must \
+                       have an alphabetic TLD of at least two characters. NULL in -> NULL list; \
+                       no matches -> empty list.",
+            desc_md: "Extract bare domains from text as `VARCHAR[]` (refangs first; URL/e-mail \
+                      hosts excluded), e.g. `extract_domains('callback to evil[.]example[.]com')` \
+                      -> `['evil.example.com']`.",
+            keywords: "extract domains, domain, hostname, fqdn, bare domain, refang, c2 domain, \
+                       extract domain",
         }
     }
     pub fn urls() -> Self {
@@ -68,6 +102,16 @@ impl Extract {
                 "SELECT UNNEST(ioc.main.extract_urls('payload from hxxp://evil[.]com/x'));",
             example_desc: "Pull a defanged URL out of a report \
                            (returns 'http://evil.com/x').",
+            title: "Extract Web URLs",
+            desc_llm: "Extract every distinct URL from free text and return them as a VARCHAR \
+                       list in live (refanged) form. The input is refanged first, so defanged \
+                       links like 'hxxp://evil[.]com/x' are matched. NULL in -> NULL list; no \
+                       matches -> empty list.",
+            desc_md: "Extract URLs from text as `VARCHAR[]` (refangs first), e.g. \
+                      `extract_urls('payload from hxxp://evil[.]com/x')` -> \
+                      `['http://evil.com/x']`.",
+            keywords: "extract urls, url, link, uri, web address, refang, payload url, c2 url, \
+                       extract url",
         }
     }
     pub fn emails() -> Self {
@@ -78,6 +122,15 @@ impl Extract {
             example_sql: "SELECT UNNEST(ioc.main.extract_emails('phish from bad[at]evil[.]com'));",
             example_desc: "Pull a defanged e-mail address out of a report \
                            (returns 'bad@evil.com').",
+            title: "Extract E-mail Addresses",
+            desc_llm: "Extract every distinct e-mail address from free text and return them as a \
+                       VARCHAR list in live (refanged) form. The input is refanged first, so \
+                       defanged forms like 'bad[at]evil[.]com' are matched. NULL in -> NULL \
+                       list; no matches -> empty list.",
+            desc_md: "Extract e-mail addresses from text as `VARCHAR[]` (refangs first), e.g. \
+                      `extract_emails('phish from bad[at]evil[.]com')` -> `['bad@evil.com']`.",
+            keywords: "extract emails, email, e-mail, address, phishing, sender, refang, \
+                       at sign, extract email",
         }
     }
     pub fn hashes() -> Self {
@@ -88,6 +141,15 @@ impl Extract {
             example_sql: "SELECT UNNEST(ioc.main.extract_hashes('sample md5 d41d8cd98f00b204e9800998ecf8427e'));",
             example_desc: "Pull a file hash out of a report \
                            (returns 'd41d8cd98f00b204e9800998ecf8427e').",
+            title: "Extract File Hashes",
+            desc_llm: "Extract every distinct file hash (md5, sha1, sha256) from free text and \
+                       return them as a VARCHAR list. The input is refanged first. Pair with \
+                       `hash_type` to label each hash by algorithm. NULL in -> NULL list; no \
+                       matches -> empty list.",
+            desc_md: "Extract md5/sha1/sha256 hashes from text as `VARCHAR[]` (refangs first), \
+                      e.g. `extract_hashes('sample md5 d41d8cd9...')` -> `['d41d8cd9...']`.",
+            keywords: "extract hashes, hash, md5, sha1, sha256, file hash, fingerprint, \
+                       checksum, sample, refang, extract hash",
         }
     }
     pub fn cves() -> Self {
@@ -98,6 +160,15 @@ impl Extract {
             example_sql:
                 "SELECT UNNEST(ioc.main.extract_cves('exploiting CVE-2024-1234 in the wild'));",
             example_desc: "Pull a CVE identifier out of a report (returns 'CVE-2024-1234').",
+            title: "Extract CVE Identifiers",
+            desc_llm: "Extract every distinct CVE identifier (Common Vulnerabilities and \
+                       Exposures id, e.g. CVE-2024-1234) from free text and return them as a \
+                       VARCHAR list. The input is refanged first. NULL in -> NULL list; no \
+                       matches -> empty list.",
+            desc_md: "Extract CVE identifiers from text as `VARCHAR[]` (refangs first), e.g. \
+                      `extract_cves('exploiting CVE-2024-1234')` -> `['CVE-2024-1234']`.",
+            keywords: "extract cves, cve, vulnerability, cve id, common vulnerabilities and \
+                       exposures, exploit, advisory, extract cve",
         }
     }
 }
@@ -116,6 +187,13 @@ impl ScalarFunction for Extract {
                 description: self.example_desc.into(),
                 expected_output: None,
             }],
+            tags: crate::meta::object_tags(
+                self.title,
+                self.desc_llm,
+                self.desc_md,
+                self.keywords,
+                "scalar/extract.rs",
+            ),
             ..Default::default()
         }
     }
