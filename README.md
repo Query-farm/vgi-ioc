@@ -4,7 +4,9 @@
 
 <p align="center"><em>A <a href="https://query.farm">Query.Farm</a> VGI worker for DuckDB.</em></p>
 
-# vgi-ioc
+# Extract & Defang/Refang Threat Indicators (IOCs) in DuckDB
+
+> **vgi-ioc** · a [Query.Farm](https://query.farm) VGI worker
 
 A [VGI](https://query.farm) worker (Rust, a compiled binary) that brings
 **cyber-threat indicator (IOC) extraction and defanging/refanging** to DuckDB /
