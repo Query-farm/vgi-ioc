@@ -61,7 +61,7 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                     .to_string(),
             ),
             (
-                "vgi.description_llm".to_string(),
+                "vgi.doc_llm".to_string(),
                 "Parse cyber-threat indicators of compromise (IOCs) out of free-text reports: \
                  IPv4/IPv6 addresses, domains, URLs, e-mail addresses, file hashes \
                  (md5/sha1/sha256/sha512) and CVE identifiers. Defang indicators to make them \
@@ -73,7 +73,7 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                     .to_string(),
             ),
             (
-                "vgi.description_md".to_string(),
+                "vgi.doc_md".to_string(),
                 "# ioc\n\nDefensive CTI tooling: IOC (indicator-of-compromise) extraction and \
                  defang/refang over Apache Arrow.\n\nScalars: `defang`, `refang`, `extract_ipv4`, \
                  `extract_ipv6`, `extract_domains`, `extract_urls`, `extract_emails`, \
@@ -122,14 +122,14 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                         .to_string(),
                 ),
                 (
-                    "vgi.description_llm".to_string(),
+                    "vgi.doc_llm".to_string(),
                     "IOC extraction and defang/refang functions: pull IPv4/IPv6, domains, URLs, \
                      e-mails, hashes and CVEs out of text, defang/refang indicators, classify a \
                      hash by length, and test whether text contains any indicator."
                         .to_string(),
                 ),
                 (
-                    "vgi.description_md".to_string(),
+                    "vgi.doc_md".to_string(),
                     "IOC extraction and defang/refang functions for cyber-threat intelligence, \
                      over Apache Arrow."
                         .to_string(),

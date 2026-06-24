@@ -83,7 +83,7 @@ impl TableFunction for ExtractIocs {
             "table/extract_iocs.rs",
         );
         tags.push((
-            "vgi.columns_md".into(),
+            "vgi.result_columns_md".into(),
             "| column | type | description |\n\
              |---|---|---|\n\
              | `type` | VARCHAR | Indicator type: one of `ipv4`, `ipv6`, `url`, `email`, \
