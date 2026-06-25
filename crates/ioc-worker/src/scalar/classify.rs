@@ -49,9 +49,7 @@ impl ScalarFunction for HashType {
                  indicators by algorithm.",
                 "Classify a hex string by length as `md5`/`sha1`/`sha256`/`sha512`, or NULL, \
                  e.g. `hash_type('d41d8cd98f00b204e9800998ecf8427e')` -> `'md5'`.",
-                "hash type, hash_type, md5, sha1, sha256, sha512, classify hash, hash length, \
-                 fingerprint, file hash, algorithm",
-                "scalar/classify.rs",
+                r#"["hash type","hash_type","md5","sha1","sha256","sha512","classify hash","hash length","fingerprint","file hash","algorithm"]"#,
             ),
             ..Default::default()
         }
@@ -61,7 +59,7 @@ impl ScalarFunction for HashType {
         vec![ArgSpec::any_column(
             "s",
             0,
-            "Candidate hash string (VARCHAR)",
+            "The candidate hash to classify; its length determines the reported algorithm",
         )]
     }
 
@@ -118,16 +116,19 @@ impl ScalarFunction for IsIoc {
                  count. Use it as a fast predicate to flag or filter rows worth deeper extraction.",
                 "True if text contains any IOC (refangs first), e.g. \
                  `is_ioc('beacon to 10[.]0[.]0[.]5')` -> `true`.",
-                "is_ioc, contains ioc, has indicator, detect, predicate, flag, screen, triage, \
-                 threat detection",
-                "scalar/classify.rs",
+                r#"["is_ioc","contains ioc","has indicator","detect","predicate","flag","screen","triage","threat detection"]"#,
             ),
             ..Default::default()
         }
     }
 
     fn argument_specs(&self) -> Vec<ArgSpec> {
-        vec![ArgSpec::any_column("text", 0, "Free text (VARCHAR)")]
+        vec![ArgSpec::any_column(
+            "text",
+            0,
+            "The free text to test; it is refanged before checking so defanged indicators \
+             still count",
+        )]
     }
 
     fn on_bind(&self, _params: &BindParams) -> Result<BindResponse> {

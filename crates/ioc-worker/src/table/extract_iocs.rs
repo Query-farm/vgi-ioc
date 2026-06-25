@@ -78,9 +78,7 @@ impl TableFunction for ExtractIocs {
             "Extract every distinct IOC from text as `(type, value)` rows (refangs first; \
              deduplicated), e.g. \
              `SELECT * FROM extract_iocs('beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5')`.",
-            "extract iocs, all indicators, ioc table, type value, ipv4, ipv6, url, email, \
-             domain, hash, cve, threat report, refang, deduplicate, one-shot",
-            "table/extract_iocs.rs",
+            r#"["extract iocs","all indicators","ioc table","type value","ipv4","ipv6","url","email","domain","hash","cve","threat report","refang","deduplicate","one-shot"]"#,
         );
         tags.push((
             "vgi.result_columns_md".into(),
@@ -115,7 +113,8 @@ impl TableFunction for ExtractIocs {
             "text",
             0,
             "varchar",
-            "Free text to scan (VARCHAR constant)",
+            "The bind-time-constant text to scan; it is refanged before matching and every \
+             distinct indicator becomes a (type, value) row",
         )]
     }
 

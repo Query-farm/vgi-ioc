@@ -49,8 +49,7 @@ impl Extract {
                        matches -> empty list.",
             desc_md: "Extract IPv4 addresses from text as `VARCHAR[]` (refangs first), e.g. \
                       `extract_ipv4('beacon from 10[.]0[.]0[.]5')` -> `['10.0.0.5']`.",
-            keywords: "extract ipv4, ip address, ipv4, ip, network indicator, beacon, c2, \
-                       refang, extract ip",
+            keywords: r#"["extract ipv4","ip address","ipv4","ip","network indicator","beacon","c2","refang","extract ip"]"#,
         }
     }
     pub fn ipv6() -> Self {
@@ -67,8 +66,7 @@ impl Extract {
             desc_md: "Extract IPv6 addresses from text as `VARCHAR[]` (refangs first, \
                       canonicalized), e.g. `extract_ipv6('C2 at 2001:db8::1')` -> \
                       `['2001:db8::1']`.",
-            keywords: "extract ipv6, ipv6, ip address, ip, network indicator, c2, refang, \
-                       extract ip",
+            keywords: r#"["extract ipv6","ipv6","ip address","ip","network indicator","c2","refang","extract ip"]"#,
         }
     }
     pub fn domains() -> Self {
@@ -89,8 +87,7 @@ impl Extract {
             desc_md: "Extract bare domains from text as `VARCHAR[]` (refangs first; URL/e-mail \
                       hosts excluded), e.g. `extract_domains('callback to evil[.]example[.]com')` \
                       -> `['evil.example.com']`.",
-            keywords: "extract domains, domain, hostname, fqdn, bare domain, refang, c2 domain, \
-                       extract domain",
+            keywords: r#"["extract domains","domain","hostname","fqdn","bare domain","refang","c2 domain","extract domain"]"#,
         }
     }
     pub fn urls() -> Self {
@@ -110,8 +107,7 @@ impl Extract {
             desc_md: "Extract URLs from text as `VARCHAR[]` (refangs first), e.g. \
                       `extract_urls('payload from hxxp://evil[.]com/x')` -> \
                       `['http://evil.com/x']`.",
-            keywords: "extract urls, url, link, uri, web address, refang, payload url, c2 url, \
-                       extract url",
+            keywords: r#"["extract urls","url","link","uri","web address","refang","payload url","c2 url","extract url"]"#,
         }
     }
     pub fn emails() -> Self {
@@ -129,8 +125,7 @@ impl Extract {
                        list; no matches -> empty list.",
             desc_md: "Extract e-mail addresses from text as `VARCHAR[]` (refangs first), e.g. \
                       `extract_emails('phish from bad[at]evil[.]com')` -> `['bad@evil.com']`.",
-            keywords: "extract emails, email, e-mail, address, phishing, sender, refang, \
-                       at sign, extract email",
+            keywords: r#"["extract emails","email","e-mail","address","phishing","sender","refang","at sign","extract email"]"#,
         }
     }
     pub fn hashes() -> Self {
@@ -148,8 +143,7 @@ impl Extract {
                        matches -> empty list.",
             desc_md: "Extract md5/sha1/sha256 hashes from text as `VARCHAR[]` (refangs first), \
                       e.g. `extract_hashes('sample md5 d41d8cd9...')` -> `['d41d8cd9...']`.",
-            keywords: "extract hashes, hash, md5, sha1, sha256, file hash, fingerprint, \
-                       checksum, sample, refang, extract hash",
+            keywords: r#"["extract hashes","hash","md5","sha1","sha256","file hash","fingerprint","checksum","sample","refang","extract hash"]"#,
         }
     }
     pub fn cves() -> Self {
@@ -167,8 +161,7 @@ impl Extract {
                        matches -> empty list.",
             desc_md: "Extract CVE identifiers from text as `VARCHAR[]` (refangs first), e.g. \
                       `extract_cves('exploiting CVE-2024-1234')` -> `['CVE-2024-1234']`.",
-            keywords: "extract cves, cve, vulnerability, cve id, common vulnerabilities and \
-                       exposures, exploit, advisory, extract cve",
+            keywords: r#"["extract cves","cve","vulnerability","cve id","common vulnerabilities and exposures","exploit","advisory","extract cve"]"#,
         }
     }
 }
@@ -187,19 +180,18 @@ impl ScalarFunction for Extract {
                 description: self.example_desc.into(),
                 expected_output: None,
             }],
-            tags: crate::meta::object_tags(
-                self.title,
-                self.desc_llm,
-                self.desc_md,
-                self.keywords,
-                "scalar/extract.rs",
-            ),
+            tags: crate::meta::object_tags(self.title, self.desc_llm, self.desc_md, self.keywords),
             ..Default::default()
         }
     }
 
     fn argument_specs(&self) -> Vec<ArgSpec> {
-        vec![ArgSpec::any_column("text", 0, "Free text (VARCHAR)")]
+        vec![ArgSpec::any_column(
+            "text",
+            0,
+            "The free text to scan for indicators; it is refanged before matching so \
+             defanged forms are still found",
+        )]
     }
 
     fn on_bind(&self, _params: &BindParams) -> Result<BindResponse> {

@@ -55,8 +55,7 @@ impl Fang {
                        transform; NULL in -> NULL out. The inverse of `refang`.",
             desc_md: "Defang indicators so they are safe to share, e.g. \
                       `defang('http://evil.com/x')` -> `'hxxp[://]evil[.]com/x'`.",
-            keywords: "defang, neutralize, sanitize, safe to share, hxxp, bracket dots, \
-                       make safe, redact link, indicator, url, domain",
+            keywords: r#"["defang","neutralize","sanitize","safe to share","hxxp","bracket dots","make safe","redact link","indicator","url","domain"]"#,
         }
     }
 
@@ -76,8 +75,7 @@ impl Fang {
                        extractors call this internally so defanged indicators are still matched.",
             desc_md: "Refang defanged indicators back to live form, e.g. \
                       `refang('hxxp://evil[.]com')` -> `'http://evil.com'`.",
-            keywords: "refang, restore, undefang, rehydrate, live form, canonical, hxxp to http, \
-                       unbracket, indicator, url, domain",
+            keywords: r#"["refang","restore","undefang","rehydrate","live form","canonical","hxxp to http","unbracket","indicator","url","domain"]"#,
         }
     }
 }
@@ -96,19 +94,17 @@ impl ScalarFunction for Fang {
                 description: self.example_desc.into(),
                 expected_output: None,
             }],
-            tags: crate::meta::object_tags(
-                self.title,
-                self.desc_llm,
-                self.desc_md,
-                self.keywords,
-                "scalar/fang.rs",
-            ),
+            tags: crate::meta::object_tags(self.title, self.desc_llm, self.desc_md, self.keywords),
             ..Default::default()
         }
     }
 
     fn argument_specs(&self) -> Vec<ArgSpec> {
-        vec![ArgSpec::any_column("text", 0, "Free text (VARCHAR)")]
+        vec![ArgSpec::any_column(
+            "text",
+            0,
+            "The free text to defang or refang; indicators inside it are rewritten in place",
+        )]
     }
 
     fn on_bind(&self, _params: &BindParams) -> Result<BindResponse> {

@@ -2,39 +2,26 @@
 //! `vgi-lint` strict profile expects on **every** function and table.
 //!
 //! Each function/table surfaces these in its `FunctionMetadata.tags`:
-//! - `vgi.title` (VGI124)        — human-friendly display name
+//! - `vgi.title` (VGI124)   — human-friendly display name
 //! - `vgi.doc_llm` (VGI112) — Markdown narrative aimed at LLMs/agents
 //! - `vgi.doc_md` (VGI113)  — Markdown narrative for human docs
-//! - `vgi.keywords` (VGI126)        — comma-separated search terms/synonyms
-//! - `vgi.source_url` (VGI128)      — link to the implementing source file
+//! - `vgi.keywords` (VGI126) — comma-separated search terms/synonyms
 //!
-//! `source_url(file)` builds the canonical GitHub blob URL for a source file so
-//! every object points at exactly where it is implemented.
+//! Per-object `vgi.source_url` is intentionally NOT emitted: provenance lives
+//! once on the catalog (`CatalogModel.source_url`); repeating it on every
+//! object is redundant (VGI139).
 
-/// Base GitHub blob URL for source files in this repo (pinned to `main`).
-const SOURCE_BASE: &str = "https://github.com/Query-farm/vgi-ioc/blob/main/crates/ioc-worker/src";
-
-/// Build the implementation `vgi.source_url` for a file under `ioc-worker/src`,
-/// e.g. `source_url("scalar/fang.rs")`.
-pub fn source_url(relative_path: &str) -> String {
-    format!("{SOURCE_BASE}/{relative_path}")
-}
-
-/// Build the five standard per-object discovery/description tags.
-///
-/// `relative_path` is the implementing file relative to `ioc-worker/src`.
+/// Build the four standard per-object discovery/description tags.
 pub fn object_tags(
     title: &str,
     description_llm: &str,
     description_md: &str,
     keywords: &str,
-    relative_path: &str,
 ) -> Vec<(String, String)> {
     vec![
         ("vgi.title".to_string(), title.to_string()),
         ("vgi.doc_llm".to_string(), description_llm.to_string()),
         ("vgi.doc_md".to_string(), description_md.to_string()),
         ("vgi.keywords".to_string(), keywords.to_string()),
-        ("vgi.source_url".to_string(), source_url(relative_path)),
     ]
 }
