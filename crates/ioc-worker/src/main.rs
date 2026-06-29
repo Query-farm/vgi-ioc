@@ -72,11 +72,40 @@ fn catalog_metadata(name: &str) -> CatalogModel {
             ),
             (
                 "vgi.doc_md".to_string(),
-                "# ioc\n\nDefensive CTI tooling: IOC (indicator-of-compromise) extraction and \
-                 defang/refang over Apache Arrow.\n\nScalars: `defang`, `refang`, `extract_ipv4`, \
-                 `extract_ipv6`, `extract_domains`, `extract_urls`, `extract_emails`, \
-                 `extract_hashes`, `extract_cves`, `hash_type`, `is_ioc`, `ioc_version`. Table: \
-                 `extract_iocs`."
+                "# IOC Extraction & Defang/Refang for DuckDB\n\n\
+                 Pull indicators of compromise (IOCs) out of cyber-threat-intelligence (CTI) \
+                 reports and defang or refang them with plain SQL — no Python notebook, regex \
+                 cheat-sheet, or external service required. The `ioc` extension turns DuckDB into \
+                 an IOC parser that recognizes IPv4 and IPv6 addresses, domains, URLs, e-mail \
+                 addresses, file hashes (MD5, SHA-1, SHA-256, SHA-512) and CVE identifiers, and \
+                 converts between live indicators (`http://evil.com`) and the *defanged* form \
+                 (`hxxp[://]evil[.]com`) that analysts use to share malware artifacts safely. It \
+                 is built for threat hunters, incident responders, SOC analysts and data engineers \
+                 who already keep logs, alerts and reports in DuckDB and want indicator extraction \
+                 to be just another column expression.\n\n\
+                 This is a purely **defensive** tool: it reads and rewrites indicators that already \
+                 exist in your text — it never generates attacks, resolves names, or touches the \
+                 network. Extraction is powered by the Rust [`regex`](https://github.com/rust-lang/regex) \
+                 crate ([documentation](https://docs.rs/regex/latest/regex/)), whose linear-time, \
+                 backtracking-free engine matches large reports without catastrophic blowup. The \
+                 worker is a standalone binary that DuckDB attaches over Apache Arrow IPC, so \
+                 results stream back as native Arrow columns. A key design choice is \
+                 *refang-before-extract*: every extractor (and `is_ioc` / `extract_iocs`) first \
+                 refangs a copy of its input, so indicators that were defanged in a report — \
+                 `10[.]0[.]0[.]5`, `bad[at]evil[.]com`, `hxxp://evil[.]com` — are still found. \
+                 Only `defang` and `refang` themselves skip that step.\n\n\
+                 Attach it with `ATTACH 'ioc' (TYPE vgi, LOCATION '…')` and call the scalar \
+                 functions `defang` and `refang` to neutralize or restore a single indicator; \
+                 `extract_ipv4`, `extract_ipv6`, `extract_domains`, `extract_urls`, \
+                 `extract_emails`, `extract_hashes` and `extract_cves` to return a `LIST(VARCHAR)` \
+                 of matches of one type; `hash_type` to classify a hash by length (md5/sha1/sha256/\
+                 sha512); `is_ioc` to test whether any indicator is present; and `ioc_version` for \
+                 the build version. The table function `extract_iocs` explodes a blob of text into \
+                 one `(type, value)` row per indicator across every type at once — ideal for \
+                 enriching an alerts table, building a watchlist, or joining extracted indicators \
+                 against threat feeds. Source and issues live at \
+                 [Query-farm/vgi-ioc](https://github.com/Query-farm/vgi-ioc); the worker is part \
+                 of the VGI ecosystem from [Query Farm](https://query.farm)."
                     .to_string(),
             ),
             ("vgi.author".to_string(), "Query.Farm".to_string()),
