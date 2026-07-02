@@ -33,6 +33,7 @@ impl ScalarFunction for IocVersion {
                  of the IOC tooling is attached.",
                 "Return the ioc worker version string, e.g. `ioc_version()` -> `'0.1.0'`.",
                 r#"["version","ioc_version","build","semantic version","diagnostics","capability","about"]"#,
+                "Utility",
             ),
             ..Default::default()
         }

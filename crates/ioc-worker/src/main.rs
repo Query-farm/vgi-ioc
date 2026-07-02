@@ -93,19 +93,16 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                  *refang-before-extract*: every extractor (and `is_ioc` / `extract_iocs`) first \
                  refangs a copy of its input, so indicators that were defanged in a report — \
                  `10[.]0[.]0[.]5`, `bad[at]evil[.]com`, `hxxp://evil[.]com` — are still found. \
-                 Only `defang` and `refang` themselves skip that step.\n\n\
-                 Attach it with `ATTACH 'ioc' (TYPE vgi, LOCATION '…')` and call the scalar \
-                 functions `defang` and `refang` to neutralize or restore a single indicator; \
-                 `extract_ipv4`, `extract_ipv6`, `extract_domains`, `extract_urls`, \
-                 `extract_emails`, `extract_hashes` and `extract_cves` to return a `LIST(VARCHAR)` \
-                 of matches of one type; `hash_type` to classify a hash by length (md5/sha1/sha256/\
-                 sha512); `is_ioc` to test whether any indicator is present; and `ioc_version` for \
-                 the build version. The table function `extract_iocs` explodes a blob of text into \
-                 one `(type, value)` row per indicator across every type at once — ideal for \
-                 enriching an alerts table, building a watchlist, or joining extracted indicators \
-                 against threat feeds. Source and issues live at \
-                 [Query-farm/vgi-ioc](https://github.com/Query-farm/vgi-ioc); the worker is part \
-                 of the VGI ecosystem from [Query Farm](https://query.farm)."
+                 Only defanging and refanging themselves skip that step.\n\n\
+                 Reach for it whenever indicators live inside free text rather than tidy columns: \
+                 enriching an alerts or tickets table, building a watchlist from an incident \
+                 report, sanitizing artifacts before sharing them, or joining extracted \
+                 indicators against a threat feed. Attach it with \
+                 `ATTACH 'ioc' (TYPE vgi, LOCATION '…')`, then browse the `main` schema to \
+                 discover the available functions — each is categorized (extraction, \
+                 defang/refang, classification) and carries its own worked examples. Source and \
+                 issues live at [Query-farm/vgi-ioc](https://github.com/Query-farm/vgi-ioc); the \
+                 worker is part of the VGI ecosystem from [Query Farm](https://query.farm)."
                     .to_string(),
             ),
             ("vgi.author".to_string(), "Query.Farm".to_string()),
@@ -121,6 +118,50 @@ fn catalog_metadata(name: &str) -> CatalogModel {
             (
                 "vgi.support_policy_url".to_string(),
                 "https://github.com/Query-farm/vgi-ioc/blob/main/README.md".to_string(),
+            ),
+            // VGI152: analyst tasks `vgi-lint simulate` uses to measure how well an
+            // agent can actually drive this worker. Each reference_sql is
+            // self-contained and runnable against an attached `ioc` worker.
+            (
+                "vgi.agent_test_tasks".to_string(),
+                r#"[
+  {
+    "name": "extract-all-iocs",
+    "prompt": "From the text 'beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5', list every indicator of compromise, one indicator per row, with two columns: its type and its value.",
+    "reference_sql": "SELECT type, value FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5') ORDER BY type, value",
+    "unordered": true,
+    "ignore_column_names": true
+  },
+  {
+    "name": "defang-url",
+    "prompt": "Return a single value: the URL http://evil.com/x rewritten into its defanged, safe-to-share form (so it cannot be clicked when pasted into a report).",
+    "reference_sql": "SELECT ioc.main.defang('http://evil.com/x') AS safe",
+    "unordered": true,
+    "ignore_column_names": true
+  },
+  {
+    "name": "classify-hash",
+    "prompt": "Return a single value naming the hash algorithm that produced the digest d41d8cd98f00b204e9800998ecf8427e.",
+    "reference_sql": "SELECT ioc.main.hash_type('d41d8cd98f00b204e9800998ecf8427e') AS algorithm",
+    "unordered": true,
+    "ignore_column_names": true
+  },
+  {
+    "name": "detect-ioc",
+    "prompt": "Return a single boolean value that is true when the text 'exploiting CVE-2024-1234 in the wild' contains any indicator of compromise, and false otherwise.",
+    "reference_sql": "SELECT ioc.main.is_ioc('exploiting CVE-2024-1234 in the wild') AS has_ioc",
+    "unordered": true,
+    "ignore_column_names": true
+  },
+  {
+    "name": "extract-ipv4-from-defanged",
+    "prompt": "From the defanged report 'callback from 10[.]0[.]0[.]5 and 192[.]168[.]1[.]1', return the IPv4 addresses one address per row (a single column of scalar address strings, not a list).",
+    "reference_sql": "SELECT UNNEST(ioc.main.extract_ipv4('callback from 10[.]0[.]0[.]5 and 192[.]168[.]1[.]1')) AS ip ORDER BY ip",
+    "unordered": true,
+    "ignore_column_names": true
+  }
+]"#
+                .to_string(),
             ),
         ],
         source_url: Some("https://github.com/Query-farm/vgi-ioc".to_string()),
@@ -141,6 +182,19 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                 ("domain".to_string(), "security".to_string()),
                 ("category".to_string(), "threat-intelligence".to_string()),
                 ("topic".to_string(), "ioc-extraction".to_string()),
+                // VGI413: ordered category registry. Every function tags itself with a
+                // matching `vgi.category`; categories drive navigation, listing sections,
+                // and SEO descriptions.
+                (
+                    "vgi.categories".to_string(),
+                    r#"[
+  {"name": "Extraction", "description": "Pull indicators of compromise out of free text — one type at a time or every type at once."},
+  {"name": "Defang & Refang", "description": "Neutralize live indicators so they are safe to share, or restore defanged indicators to their live form."},
+  {"name": "Classification", "description": "Label or detect indicators: classify a file hash by algorithm, or test whether text contains any indicator."},
+  {"name": "Utility", "description": "Diagnostics and build information for the worker."}
+]"#
+                    .to_string(),
+                ),
                 (
                     "vgi.doc_llm".to_string(),
                     "IOC extraction and defang/refang functions: pull IPv4/IPv6, domains, URLs, \
@@ -150,13 +204,24 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                 ),
                 (
                     "vgi.doc_md".to_string(),
-                    "IOC extraction and defang/refang functions for cyber-threat intelligence, \
-                     served over Apache Arrow. Pull IPv4/IPv6 addresses, domains, URLs, e-mails, \
-                     file hashes and CVE identifiers out of free-text reports; defang indicators \
-                     to make them safe to share and refang them back to live form; classify a \
-                     hash by length; and test whether text contains any indicator. Every \
-                     extractor refangs its input first, so indicators that were defanged in a \
-                     report are still found."
+                    "## IOC extraction & defang/refang\n\n\
+                     Indicator-of-compromise tooling for cyber-threat intelligence, served over \
+                     Apache Arrow. Pull IPv4/IPv6 addresses, domains, URLs, e-mails, file hashes \
+                     and CVE identifiers out of free-text reports with plain SQL, and convert \
+                     between live and *defanged* indicator forms.\n\n\
+                     ### Key concepts\n\n\
+                     - **Refang-before-extract** — every extractor refangs a copy of its input \
+                     first, so indicators defanged in a report (`hxxp://evil[.]com`, \
+                     `10[.]0[.]0[.]5`, `bad[at]evil[.]com`) are still found.\n\
+                     - **Defang / refang** — neutralize live indicators so they are safe to \
+                     paste into a ticket or chat, or restore them to live form.\n\
+                     - **Deduplicated, typed output** — the all-in-one extractor returns one \
+                     `(type, value)` row per distinct indicator.\n\n\
+                     ### When to use it\n\n\
+                     Reach for this schema when indicators live inside free text rather than \
+                     tidy columns — enriching an alerts table, building a watchlist from an \
+                     incident report, or sanitizing artifacts before sharing them. Browse the \
+                     functions below, grouped by category, each with its own worked examples."
                         .to_string(),
                 ),
                 // VGI506 representative example queries for the schema.

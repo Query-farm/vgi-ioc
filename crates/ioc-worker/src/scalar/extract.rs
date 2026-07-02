@@ -180,7 +180,13 @@ impl ScalarFunction for Extract {
                 description: self.example_desc.into(),
                 expected_output: None,
             }],
-            tags: crate::meta::object_tags(self.title, self.desc_llm, self.desc_md, self.keywords),
+            tags: crate::meta::object_tags(
+                self.title,
+                self.desc_llm,
+                self.desc_md,
+                self.keywords,
+                "Extraction",
+            ),
             ..Default::default()
         }
     }

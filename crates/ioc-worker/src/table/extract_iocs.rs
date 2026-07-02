@@ -75,10 +75,13 @@ impl TableFunction for ExtractIocs {
              bare domains. The text argument is a bind-time constant; a NULL or empty text yields \
              zero rows. Use this as the one-shot table function when you want all indicator types \
              at once instead of calling each extractor separately.",
-            "Extract every distinct IOC from text as `(type, value)` rows (refangs first; \
-             deduplicated), e.g. \
-             `SELECT * FROM extract_iocs('beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5')`.",
+            "Extract every distinct IOC from text as `(type, value)` rows: one row per \
+             indicator, across all supported types at once. The input is refanged first so \
+             defanged indicators are still found, results are deduplicated, and a URL or \
+             e-mail host is not double-reported as a bare domain. See the executable \
+             examples for runnable queries.",
             r#"["extract iocs","all indicators","ioc table","type value","ipv4","ipv6","url","email","domain","hash","cve","threat report","refang","deduplicate","one-shot"]"#,
+            "Extraction",
         );
         tags.push((
             "vgi.result_columns_md".into(),

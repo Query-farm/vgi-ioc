@@ -50,6 +50,7 @@ impl ScalarFunction for HashType {
                 "Classify a hex string by length as `md5`/`sha1`/`sha256`/`sha512`, or NULL, \
                  e.g. `hash_type('d41d8cd98f00b204e9800998ecf8427e')` -> `'md5'`.",
                 r#"["hash type","hash_type","md5","sha1","sha256","sha512","classify hash","hash length","fingerprint","file hash","algorithm"]"#,
+                "Classification",
             ),
             ..Default::default()
         }
@@ -117,6 +118,7 @@ impl ScalarFunction for IsIoc {
                 "True if text contains any IOC (refangs first), e.g. \
                  `is_ioc('beacon to 10[.]0[.]0[.]5')` -> `true`.",
                 r#"["is_ioc","contains ioc","has indicator","detect","predicate","flag","screen","triage","threat detection"]"#,
+                "Classification",
             ),
             ..Default::default()
         }

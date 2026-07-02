@@ -6,22 +6,26 @@
 //! - `vgi.doc_llm` (VGI112) — Markdown narrative aimed at LLMs/agents
 //! - `vgi.doc_md` (VGI113)  — Markdown narrative for human docs
 //! - `vgi.keywords` (VGI126) — comma-separated search terms/synonyms
+//! - `vgi.category` (VGI413)  — names one of the schema's `vgi.categories`
 //!
 //! Per-object `vgi.source_url` is intentionally NOT emitted: provenance lives
 //! once on the catalog (`CatalogModel.source_url`); repeating it on every
 //! object is redundant (VGI139).
 
-/// Build the four standard per-object discovery/description tags.
+/// Build the five standard per-object discovery/description tags. `category`
+/// must name one of the entries in the schema's `vgi.categories` registry.
 pub fn object_tags(
     title: &str,
     description_llm: &str,
     description_md: &str,
     keywords: &str,
+    category: &str,
 ) -> Vec<(String, String)> {
     vec![
         ("vgi.title".to_string(), title.to_string()),
         ("vgi.doc_llm".to_string(), description_llm.to_string()),
         ("vgi.doc_md".to_string(), description_md.to_string()),
         ("vgi.keywords".to_string(), keywords.to_string()),
+        ("vgi.category".to_string(), category.to_string()),
     ]
 }
