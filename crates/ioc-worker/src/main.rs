@@ -28,7 +28,7 @@ mod meta;
 mod scalar;
 mod table;
 
-use vgi::catalog::{CatSchema, CatalogModel};
+use vgi::catalog::{CatSchema, CatView, CatalogModel};
 use vgi::Worker;
 
 /// Worker version string, surfaced by `ioc_version()`.
@@ -40,6 +40,132 @@ pub fn version() -> &'static str {
 /// the `vgi-lint` metadata-quality linter. The function objects themselves are
 /// served from the registered scalars/table; this only adds catalog/schema-level
 /// comments and tags.
+/// A browsable, credential-free reference view: the registry of indicator types
+/// this worker recognizes and which function extracts each. Backed entirely by
+/// an inline `VALUES` list, so scanning it needs no network, secret, or upstream
+/// (clears VGI911) and gives an agent a real table to inspect before it has to
+/// guess a function's arguments (clears VGI146).
+fn ioc_types_view() -> CatView {
+    // NOTE: keep this list in sync with the indicator kinds emitted by
+    // `ioc::extract_iocs` (ipv4/ipv6/url/email/domain/md5/sha1/sha256/sha512/cve).
+    let definition = "\
+        SELECT * FROM (VALUES \
+          ('ipv4', 'network', 'extract_ipv4', '10[.]0[.]0[.]5', \
+           'IPv4 address; private and reserved ranges are kept because they are still real indicators in a report.'), \
+          ('ipv6', 'network', 'extract_ipv6', '2001:db8::1', \
+           'IPv6 address, canonicalized to its compressed form.'), \
+          ('domain', 'network', 'extract_domains', 'evil[.]example[.]com', \
+           'Bare domain name with an alphabetic TLD of at least two characters; hosts already claimed by a URL or e-mail are excluded.'), \
+          ('url', 'network', 'extract_urls', 'hxxp://evil[.]com/x', \
+           'Web URL, returned in live (refanged) form.'), \
+          ('email', 'email', 'extract_emails', 'bad[at]evil[.]com', \
+           'E-mail address, returned in live (refanged) form.'), \
+          ('md5', 'hash', 'extract_hashes', 'd41d8cd98f00b204e9800998ecf8427e', \
+           '32 hex-character MD5 file hash; label it with hash_type.'), \
+          ('sha1', 'hash', 'extract_hashes', 'da39a3ee5e6b4b0d3255bfef95601890afd80709', \
+           '40 hex-character SHA-1 file hash; label it with hash_type.'), \
+          ('sha256', 'hash', 'extract_hashes', 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', \
+           '64 hex-character SHA-256 file hash; label it with hash_type.'), \
+          ('sha512', 'hash', 'extract_hashes', 'cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e', \
+           '128 hex-character SHA-512 file hash; label it with hash_type.'), \
+          ('cve', 'vulnerability', 'extract_cves', 'CVE-2024-1234', \
+           'CVE identifier (Common Vulnerabilities and Exposures).') \
+        ) AS t(name, kind, extractor, example, description)"
+        .to_string();
+
+    CatView {
+        name: "ioc_types".to_string(),
+        definition,
+        comment: Some(
+            "Registry of the indicator-of-compromise types this worker recognizes: for each \
+             type, the group it belongs to, the function that extracts it, a defanged example, \
+             and a one-line description."
+                .to_string(),
+        ),
+        tags: vec![
+            ("vgi.title".to_string(), "IOC Type Registry".to_string()),
+            ("vgi.category".to_string(), "Reference".to_string()),
+            // VGI123 classifying tags (bare keys) for faceting/navigation.
+            ("domain".to_string(), "security".to_string()),
+            ("topic".to_string(), "ioc-reference".to_string()),
+            (
+                "vgi.keywords".to_string(),
+                r#"["ioc types","indicator types","registry","reference","catalog","ipv4","ipv6","domain","url","email","hash","cve","extractor","which function"]"#
+                    .to_string(),
+            ),
+            (
+                "vgi.doc_llm".to_string(),
+                "A browsable reference table listing every indicator-of-compromise type this \
+                 worker can recognize. Columns: `name` (the type, e.g. ipv4, sha256, cve), \
+                 `kind` (a coarse group: network, email, hash, or vulnerability), `extractor` \
+                 (the scalar function that pulls this type out of text, e.g. extract_ipv4), \
+                 `example` (a short defanged sample value), and `description`. Query it to \
+                 discover what the worker extracts and which function to call, before running \
+                 the specific extractor or the all-in-one extract_iocs table function. Ten rows, \
+                 one per type; no arguments, no network, always safe to scan."
+                    .to_string(),
+            ),
+            (
+                "vgi.doc_md".to_string(),
+                "## `ioc_types` — indicator type registry\n\n\
+                 A small, static reference table you can browse to see exactly which \
+                 indicator-of-compromise types this worker recognizes and which function \
+                 extracts each. Handy as a first stop before calling a specific extractor.\n\n\
+                 | column | meaning |\n\
+                 |---|---|\n\
+                 | `name` | the indicator type — `ipv4`, `ipv6`, `domain`, `url`, `email`, `md5`, `sha1`, `sha256`, `sha512`, `cve` |\n\
+                 | `kind` | coarse group: `network`, `email`, `hash`, or `vulnerability` |\n\
+                 | `extractor` | the scalar function that pulls this type out of text |\n\
+                 | `example` | a short defanged sample value |\n\
+                 | `description` | one-line notes on how the type is matched |\n\n\
+                 Ten rows, one per type. It is backed by an inline literal list, so scanning it \
+                 needs no network or credentials. To pull every type out of a report at once, \
+                 use the `extract_iocs` table function instead."
+                    .to_string(),
+            ),
+            (
+                "vgi.example_queries".to_string(),
+                r#"[
+  {
+    "description": "List the network-layer indicator types and the function that extracts each.",
+    "sql": "SELECT name, extractor FROM ioc.main.ioc_types WHERE kind = 'network' ORDER BY name"
+  },
+  {
+    "description": "Count how many indicator types fall into each coarse group.",
+    "sql": "SELECT kind, count(*) AS n_types FROM ioc.main.ioc_types GROUP BY kind ORDER BY kind"
+  }
+]"#
+                .to_string(),
+            ),
+        ],
+        column_comments: vec![
+            (
+                "name".to_string(),
+                "The indicator type identifier (matches the `type` column emitted by extract_iocs)."
+                    .to_string(),
+            ),
+            (
+                "kind".to_string(),
+                "Coarse group the type belongs to: network, email, hash, or vulnerability."
+                    .to_string(),
+            ),
+            (
+                "extractor".to_string(),
+                "Name of the scalar function that extracts this indicator type from text."
+                    .to_string(),
+            ),
+            (
+                "example".to_string(),
+                "A short, defanged example value of this indicator type.".to_string(),
+            ),
+            (
+                "description".to_string(),
+                "One-line notes on how this indicator type is matched.".to_string(),
+            ),
+        ],
+    }
+}
+
 fn catalog_metadata(name: &str) -> CatalogModel {
     CatalogModel {
         name: name.to_string(),
@@ -159,6 +285,69 @@ fn catalog_metadata(name: &str) -> CatalogModel {
     "reference_sql": "SELECT UNNEST(ioc.main.extract_ipv4('callback from 10[.]0[.]0[.]5 and 192[.]168[.]1[.]1')) AS ip ORDER BY ip",
     "unordered": true,
     "ignore_column_names": true
+  },
+  {
+    "name": "extract-ipv6",
+    "prompt": "From the text 'C2 at 2001:db8::1 observed', return the IPv6 addresses, one address per row (a single column of scalar address strings, not a list).",
+    "reference_sql": "SELECT UNNEST(ioc.main.extract_ipv6('C2 at 2001:db8::1 observed')) AS ip",
+    "unordered": true,
+    "ignore_column_names": true
+  },
+  {
+    "name": "extract-urls",
+    "prompt": "From the defanged text 'payload from hxxp://evil[.]com/x', return the URLs in live (clickable) form, one URL per row.",
+    "reference_sql": "SELECT UNNEST(ioc.main.extract_urls('payload from hxxp://evil[.]com/x')) AS url",
+    "unordered": true,
+    "ignore_column_names": true
+  },
+  {
+    "name": "extract-domains",
+    "prompt": "From the defanged text 'callback to evil[.]example[.]com', return the bare domain names, one domain per row.",
+    "reference_sql": "SELECT UNNEST(ioc.main.extract_domains('callback to evil[.]example[.]com')) AS domain",
+    "unordered": true,
+    "ignore_column_names": true
+  },
+  {
+    "name": "extract-emails",
+    "prompt": "From the defanged text 'phish from bad[at]evil[.]com', return the e-mail addresses in live form, one address per row.",
+    "reference_sql": "SELECT UNNEST(ioc.main.extract_emails('phish from bad[at]evil[.]com')) AS email",
+    "unordered": true,
+    "ignore_column_names": true
+  },
+  {
+    "name": "extract-hashes",
+    "prompt": "From the text 'sample md5 d41d8cd98f00b204e9800998ecf8427e', return the file hashes, one hash per row.",
+    "reference_sql": "SELECT UNNEST(ioc.main.extract_hashes('sample md5 d41d8cd98f00b204e9800998ecf8427e')) AS hash",
+    "unordered": true,
+    "ignore_column_names": true
+  },
+  {
+    "name": "extract-cves",
+    "prompt": "From the text 'exploiting CVE-2024-1234 in the wild', return the CVE identifiers, one per row.",
+    "reference_sql": "SELECT UNNEST(ioc.main.extract_cves('exploiting CVE-2024-1234 in the wild')) AS cve",
+    "unordered": true,
+    "ignore_column_names": true
+  },
+  {
+    "name": "refang-indicator",
+    "prompt": "Return a single value: the defanged indicator 'hxxp://evil[.]com' restored to its live, canonical form.",
+    "reference_sql": "SELECT ioc.main.refang('hxxp://evil[.]com') AS live",
+    "unordered": true,
+    "ignore_column_names": true
+  },
+  {
+    "name": "worker-version",
+    "prompt": "Return a single value: the version string reported by the running ioc worker.",
+    "reference_sql": "SELECT ioc.main.ioc_version() AS version",
+    "unordered": true,
+    "ignore_column_names": true
+  },
+  {
+    "name": "browse-ioc-types",
+    "prompt": "Using the ioc_types reference table in the ioc worker, return a single count of how many distinct indicator types it can recognize.",
+    "reference_sql": "SELECT count(*) AS n FROM ioc.main.ioc_types",
+    "unordered": true,
+    "ignore_column_names": true
   }
 ]"#
                 .to_string(),
@@ -191,6 +380,7 @@ fn catalog_metadata(name: &str) -> CatalogModel {
   {"name": "Extraction", "description": "Pull indicators of compromise out of free text — one type at a time or every type at once."},
   {"name": "Defang & Refang", "description": "Neutralize live indicators so they are safe to share, or restore defanged indicators to their live form."},
   {"name": "Classification", "description": "Label or detect indicators: classify a file hash by algorithm, or test whether text contains any indicator."},
+  {"name": "Reference", "description": "Browsable reference data: the registry of indicator types this worker recognizes and which function extracts each."},
   {"name": "Utility", "description": "Diagnostics and build information for the worker."}
 ]"#
                     .to_string(),
@@ -238,7 +428,7 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                         .to_string(),
                 ),
             ],
-            views: Vec::new(),
+            views: vec![ioc_types_view()],
             macros: Vec::new(),
             tables: Vec::new(),
         }],

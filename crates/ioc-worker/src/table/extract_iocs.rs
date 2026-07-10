@@ -84,13 +84,12 @@ impl TableFunction for ExtractIocs {
             "Extraction",
         );
         tags.push((
-            "vgi.result_columns_md".into(),
-            "| column | type | description |\n\
-             |---|---|---|\n\
-             | `type` | VARCHAR | Indicator type: one of `ipv4`, `ipv6`, `url`, `email`, \
-             `domain`, `md5`, `sha1`, `sha256`, `sha512`, `cve`. |\n\
-             | `value` | VARCHAR | The refanged (live-form) indicator value. |"
-                .into(),
+            "vgi.result_columns_schema".into(),
+            r#"[
+  {"name": "type", "type": "VARCHAR", "description": "Indicator type: one of ipv4, ipv6, url, email, domain, md5, sha1, sha256, sha512, cve."},
+  {"name": "value", "type": "VARCHAR", "description": "The refanged (live-form) indicator value."}
+]"#
+            .into(),
         ));
         tags.push(("vgi.executable_examples".into(), EXECUTABLE_EXAMPLES.into()));
         FunctionMetadata {
@@ -98,11 +97,13 @@ impl TableFunction for ExtractIocs {
                           (refangs first; deduplicated)"
                 .into(),
             examples: vec![FunctionExample {
-                sql: "SELECT * FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from \
-                      10[.]0[.]0[.]5');"
+                sql: "SELECT type, count(*) AS n \
+                      FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from \
+                      10[.]0[.]0[.]5 and bad[at]evil[.]com') \
+                      GROUP BY type ORDER BY type;"
                     .into(),
-                description: "Extract every distinct indicator from a defanged report as \
-                              (type, value) rows."
+                description: "Count the distinct indicators found in a defanged report, grouped \
+                              by indicator type."
                     .into(),
                 expected_output: None,
             }],
