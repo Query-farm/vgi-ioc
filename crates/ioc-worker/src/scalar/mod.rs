@@ -3,14 +3,11 @@
 mod classify;
 mod extract;
 mod fang;
-mod version;
 
 use vgi::Worker;
 
 /// Register every scalar function on the worker.
 pub fn register(worker: &mut Worker) {
-    worker.register_scalar(version::IocVersion);
-
     // Defang / refang text transforms.
     worker.register_scalar(fang::Fang::defang());
     worker.register_scalar(fang::Fang::refang());

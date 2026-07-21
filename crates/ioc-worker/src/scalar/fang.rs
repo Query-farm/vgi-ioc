@@ -100,6 +100,7 @@ impl ScalarFunction for Fang {
                 self.desc_md,
                 self.keywords,
                 "Defang & Refang",
+                &crate::meta::example_queries_json(self.example_desc, self.example_sql),
             ),
             ..Default::default()
         }

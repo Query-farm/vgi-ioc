@@ -18,34 +18,24 @@ use vgi_rpc::{OutputCollector, Result, RpcError};
 
 use crate::ioc::{self, Indicator};
 
-/// Guaranteed-runnable, catalog-qualified examples (VGI509). Each `sql` is
-/// self-contained and re-runnable against an attached `ioc` worker. We omit
-/// `expected_result` deliberately — the linter only needs each query to execute
-/// cleanly, and pinning exact match output would be brittle.
+/// Guaranteed-runnable, catalog-qualified examples (VGI509/VGI515). Each `sql`
+/// is self-contained and re-runnable against an attached `ioc` worker, projects
+/// or aggregates real columns (never a bare `SELECT *`, VGI514), and carries a
+/// human-readable description. We omit `expected_result` deliberately — the
+/// linter only needs each query to execute cleanly, and pinning exact match
+/// output would be brittle.
 const EXECUTABLE_EXAMPLES: &str = r#"[
   {
     "description": "Extract every distinct indicator from a defanged report as (type, value) rows.",
     "sql": "SELECT type, value FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5') ORDER BY type, value"
   },
   {
-    "description": "Defang a live URL so it is safe to paste into a report.",
-    "sql": "SELECT ioc.main.defang('http://evil.com/x') AS safe"
+    "description": "Count the distinct indicators found in a report, grouped by indicator type.",
+    "sql": "SELECT type, count(*) AS n FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5 and bad[at]evil[.]com') GROUP BY type ORDER BY type"
   },
   {
-    "description": "Refang a defanged URL back to its live form.",
-    "sql": "SELECT ioc.main.refang('hxxp://evil[.]com') AS live"
-  },
-  {
-    "description": "Pull the defanged IPv4 address out of a report.",
-    "sql": "SELECT UNNEST(ioc.main.extract_ipv4('beacon from 10[.]0[.]0[.]5')) AS ip"
-  },
-  {
-    "description": "Classify a 32-character hex string as an MD5 hash.",
-    "sql": "SELECT ioc.main.hash_type('d41d8cd98f00b204e9800998ecf8427e') AS kind"
-  },
-  {
-    "description": "Test whether free text contains any indicator of compromise.",
-    "sql": "SELECT ioc.main.is_ioc('exploiting CVE-2024-1234') AS hit"
+    "description": "Keep only the network-layer indicators (IPs, domains, URLs) from a report.",
+    "sql": "SELECT value FROM ioc.main.extract_iocs('c2 hxxp://evil[.]com from 10[.]0[.]0[.]5') WHERE type IN ('ipv4', 'ipv6', 'url', 'domain') ORDER BY value"
   }
 ]"#;
 
@@ -78,10 +68,10 @@ impl TableFunction for ExtractIocs {
             "Extract every distinct IOC from text as `(type, value)` rows: one row per \
              indicator, across all supported types at once. The input is refanged first so \
              defanged indicators are still found, results are deduplicated, and a URL or \
-             e-mail host is not double-reported as a bare domain. See the executable \
-             examples for runnable queries.",
+             e-mail host is not double-reported as a bare domain.",
             r#"["extract iocs","all indicators","ioc table","type value","ipv4","ipv6","url","email","domain","hash","cve","threat report","refang","deduplicate","one-shot"]"#,
             "Extraction",
+            EXECUTABLE_EXAMPLES,
         );
         tags.push((
             "vgi.result_columns_schema".into(),
@@ -91,19 +81,23 @@ impl TableFunction for ExtractIocs {
 ]"#
             .into(),
         ));
+        // VGI509: at least one object must expose a verified-runnable
+        // vgi.executable_examples tag. Reuse the same described list.
         tags.push(("vgi.executable_examples".into(), EXECUTABLE_EXAMPLES.into()));
         FunctionMetadata {
             description: "Extract every distinct IOC from text as (type, value) rows \
                           (refangs first; deduplicated)"
                 .into(),
+            // The native duckdb_functions().examples carrier drops per-example
+            // descriptions, so keep this example byte-identical to the first
+            // vgi.example_queries entry to avoid a description-less duplicate
+            // (VGI515).
             examples: vec![FunctionExample {
-                sql: "SELECT type, count(*) AS n \
-                      FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from \
-                      10[.]0[.]0[.]5 and bad[at]evil[.]com') \
-                      GROUP BY type ORDER BY type;"
+                sql: "SELECT type, value FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com \
+                      from 10[.]0[.]0[.]5') ORDER BY type, value"
                     .into(),
-                description: "Count the distinct indicators found in a defanged report, grouped \
-                              by indicator type."
+                description: "Extract every distinct indicator from a defanged report as \
+                              (type, value) rows."
                     .into(),
                 expected_output: None,
             }],

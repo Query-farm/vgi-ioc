@@ -43,7 +43,7 @@ impl Extract {
             example_desc: "Pull the defanged IPv4 address out of a report (returns '10.0.0.5').",
             title: "Extract IPv4 Addresses",
             desc_llm: "Extract every distinct IPv4 address from free text and return them as a \
-                       VARCHAR list. The input is refanged first, so defanged forms like \
+                       `VARCHAR` list. The input is refanged first, so defanged forms like \
                        '10[.]0[.]0[.]5' are matched; private and reserved ranges are kept because \
                        they are still real indicators in a report. NULL in -> NULL list; no \
                        matches -> empty list.",
@@ -61,7 +61,7 @@ impl Extract {
             example_desc: "Pull an IPv6 address out of free text (returns '2001:db8::1').",
             title: "Extract IPv6 Addresses",
             desc_llm: "Extract every distinct IPv6 address from free text and return them as a \
-                       VARCHAR list, canonicalized to their compressed form. The input is \
+                       `VARCHAR` list, canonicalized to their compressed form. The input is \
                        refanged first. NULL in -> NULL list; no matches -> empty list.",
             desc_md: "Extract IPv6 addresses from text as `VARCHAR[]` (refangs first, \
                       canonicalized), e.g. `extract_ipv6('C2 at 2001:db8::1')` -> \
@@ -80,7 +80,7 @@ impl Extract {
                            (returns 'evil.example.com').",
             title: "Extract Bare Domains",
             desc_llm: "Extract every distinct bare domain name from free text and return them as \
-                       a VARCHAR list. The input is refanged first. Hosts already claimed by a \
+                       a `VARCHAR` list. The input is refanged first. Hosts already claimed by a \
                        URL or e-mail are excluded to avoid double-reporting, and a domain must \
                        have an alphabetic TLD of at least two characters. NULL in -> NULL list; \
                        no matches -> empty list.",
@@ -100,7 +100,7 @@ impl Extract {
             example_desc: "Pull a defanged URL out of a report \
                            (returns 'http://evil.com/x').",
             title: "Extract Web URLs",
-            desc_llm: "Extract every distinct URL from free text and return them as a VARCHAR \
+            desc_llm: "Extract every distinct URL from free text and return them as a `VARCHAR` \
                        list in live (refanged) form. The input is refanged first, so defanged \
                        links like 'hxxp://evil[.]com/x' are matched. NULL in -> NULL list; no \
                        matches -> empty list.",
@@ -120,7 +120,7 @@ impl Extract {
                            (returns 'bad@evil.com').",
             title: "Extract E-mail Addresses",
             desc_llm: "Extract every distinct e-mail address from free text and return them as a \
-                       VARCHAR list in live (refanged) form. The input is refanged first, so \
+                       `VARCHAR` list in live (refanged) form. The input is refanged first, so \
                        defanged forms like 'bad[at]evil[.]com' are matched. NULL in -> NULL \
                        list; no matches -> empty list.",
             desc_md: "Extract e-mail addresses from text as `VARCHAR[]` (refangs first), e.g. \
@@ -138,7 +138,7 @@ impl Extract {
                            (returns 'd41d8cd98f00b204e9800998ecf8427e').",
             title: "Extract File Hashes",
             desc_llm: "Extract every distinct file hash (md5, sha1, sha256) from free text and \
-                       return them as a VARCHAR list. The input is refanged first. Pair with \
+                       return them as a `VARCHAR` list. The input is refanged first. Pair with \
                        `hash_type` to label each hash by algorithm. NULL in -> NULL list; no \
                        matches -> empty list.",
             desc_md: "Extract md5/sha1/sha256 hashes from text as `VARCHAR[]` (refangs first), \
@@ -157,7 +157,7 @@ impl Extract {
             title: "Extract CVE Identifiers",
             desc_llm: "Extract every distinct CVE identifier (Common Vulnerabilities and \
                        Exposures id, e.g. CVE-2024-1234) from free text and return them as a \
-                       VARCHAR list. The input is refanged first. NULL in -> NULL list; no \
+                       `VARCHAR` list. The input is refanged first. NULL in -> NULL list; no \
                        matches -> empty list.",
             desc_md: "Extract CVE identifiers from text as `VARCHAR[]` (refangs first), e.g. \
                       `extract_cves('exploiting CVE-2024-1234')` -> `['CVE-2024-1234']`.",
@@ -186,6 +186,7 @@ impl ScalarFunction for Extract {
                 self.desc_md,
                 self.keywords,
                 "Extraction",
+                &crate::meta::example_queries_json(self.example_desc, self.example_sql),
             ),
             ..Default::default()
         }

@@ -51,6 +51,10 @@ impl ScalarFunction for HashType {
                  e.g. `hash_type('d41d8cd98f00b204e9800998ecf8427e')` -> `'md5'`.",
                 r#"["hash type","hash_type","md5","sha1","sha256","sha512","classify hash","hash length","fingerprint","file hash","algorithm"]"#,
                 "Classification",
+                &crate::meta::example_queries_json(
+                    "Classify a 32-character hex string as an MD5 hash (returns 'md5').",
+                    "SELECT ioc.main.hash_type('d41d8cd98f00b204e9800998ecf8427e');",
+                ),
             ),
             ..Default::default()
         }
@@ -119,6 +123,10 @@ impl ScalarFunction for IsIoc {
                  `is_ioc('beacon to 10[.]0[.]0[.]5')` -> `true`.",
                 r#"["is_ioc","contains ioc","has indicator","detect","predicate","flag","screen","triage","threat detection"]"#,
                 "Classification",
+                &crate::meta::example_queries_json(
+                    "Test whether free text contains any indicator of compromise (returns true).",
+                    "SELECT ioc.main.is_ioc('beacon to 10[.]0[.]0[.]5');",
+                ),
             ),
             ..Default::default()
         }

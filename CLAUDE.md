@@ -56,7 +56,8 @@ still found. Only `defang`/`refang` themselves skip this. See the module docs in
    `statement ok` + `LOAD vgi;`. Functions live under the `ioc` catalog, so each
    file does `SET search_path = 'ioc.main'`, then `USE memory` before `DETACH`.
 2. **Scalars are positional-only.** No optional args here; all our scalars are
-   arity-1 (or 0 for `ioc_version`).
+   arity-1. The worker build version is published as the catalog's
+   `implementation_version` (VGI328), not as a parameterless scalar.
 3. **Table functions take *constant* args, bound positionally** by the Rust SDK
    (no `name :=`). `extract_iocs('literal')` — read the const via
    `arguments.const_str(0)`.

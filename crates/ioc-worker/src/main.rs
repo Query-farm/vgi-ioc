@@ -31,7 +31,9 @@ mod table;
 use vgi::catalog::{CatSchema, CatView, CatalogModel};
 use vgi::Worker;
 
-/// Worker version string, surfaced by `ioc_version()`.
+/// Worker build version, published as the catalog's `implementation_version`
+/// (read from `vgi_catalogs()` without spending a query — no parameterless
+/// `*_version()` scalar, per VGI328).
 pub fn version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }
@@ -223,12 +225,8 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                  Reach for it whenever indicators live inside free text rather than tidy columns: \
                  enriching an alerts or tickets table, building a watchlist from an incident \
                  report, sanitizing artifacts before sharing them, or joining extracted \
-                 indicators against a threat feed. Attach it with \
-                 `ATTACH 'ioc' (TYPE vgi, LOCATION '…')`, then browse the `main` schema to \
-                 discover the available functions — each is categorized (extraction, \
-                 defang/refang, classification) and carries its own worked examples. Source and \
-                 issues live at [Query-farm/vgi-ioc](https://github.com/Query-farm/vgi-ioc); the \
-                 worker is part of the VGI ecosystem from [Query Farm](https://query.farm)."
+                 indicators against a threat feed. Functions are grouped into extraction, \
+                 defang/refang and classification, and each carries its own worked examples."
                     .to_string(),
             ),
             ("vgi.author".to_string(), "Query.Farm".to_string()),
@@ -336,13 +334,6 @@ fn catalog_metadata(name: &str) -> CatalogModel {
     "ignore_column_names": true
   },
   {
-    "name": "worker-version",
-    "prompt": "Return a single value: the version string reported by the running ioc worker.",
-    "reference_sql": "SELECT ioc.main.ioc_version() AS version",
-    "unordered": true,
-    "ignore_column_names": true
-  },
-  {
     "name": "browse-ioc-types",
     "prompt": "Using the ioc_types reference table in the ioc worker, return a single count of how many distinct indicator types it can recognize.",
     "reference_sql": "SELECT count(*) AS n FROM ioc.main.ioc_types",
@@ -354,6 +345,11 @@ fn catalog_metadata(name: &str) -> CatalogModel {
             ),
         ],
         source_url: Some("https://github.com/Query-farm/vgi-ioc".to_string()),
+        // VGI328: publish the worker build version as catalog metadata instead of
+        // a parameterless ioc_version() scalar — agents read it from
+        // vgi_catalogs() without spending a query, and it cannot drift from the
+        // running binary.
+        implementation_version: Some(version().to_string()),
         schemas: vec![CatSchema {
             name: "main".to_string(),
             comment: Some(
@@ -380,8 +376,7 @@ fn catalog_metadata(name: &str) -> CatalogModel {
   {"name": "Extraction", "description": "Pull indicators of compromise out of free text — one type at a time or every type at once."},
   {"name": "Defang & Refang", "description": "Neutralize live indicators so they are safe to share, or restore defanged indicators to their live form."},
   {"name": "Classification", "description": "Label or detect indicators: classify a file hash by algorithm, or test whether text contains any indicator."},
-  {"name": "Reference", "description": "Browsable reference data: the registry of indicator types this worker recognizes and which function extracts each."},
-  {"name": "Utility", "description": "Diagnostics and build information for the worker."}
+  {"name": "Reference", "description": "Browsable reference data: the registry of indicator types this worker recognizes and which function extracts each."}
 ]"#
                     .to_string(),
                 ),
@@ -414,18 +409,34 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                      functions below, grouped by category, each with its own worked examples."
                         .to_string(),
                 ),
-                // VGI506 representative example queries for the schema.
+                // VGI506/VGI515 representative example queries for the schema: a
+                // JSON list of {description, sql}, each projecting/aggregating real
+                // columns rather than a bare SELECT * (VGI514).
                 (
                     "vgi.example_queries".to_string(),
-                    "SELECT ioc.main.defang('http://evil.com/x');\n\
-                     SELECT ioc.main.refang('hxxp://evil[.]com');\n\
-                     SELECT UNNEST(ioc.main.extract_ipv4('beacon from 10[.]0[.]0[.]5'));\n\
-                     SELECT UNNEST(ioc.main.extract_urls('payload from hxxp://evil[.]com/x'));\n\
-                     SELECT ioc.main.hash_type('d41d8cd98f00b204e9800998ecf8427e');\n\
-                     SELECT ioc.main.is_ioc('exploiting CVE-2024-1234');\n\
-                     SELECT * FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from \
-                     10[.]0[.]0[.]5');"
-                        .to_string(),
+                    r#"[
+  {
+    "description": "Extract every distinct indicator from a defanged report as (type, value) rows.",
+    "sql": "SELECT type, value FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5') ORDER BY type, value"
+  },
+  {
+    "description": "Count the indicators in a report, grouped by type.",
+    "sql": "SELECT type, count(*) AS n FROM ioc.main.extract_iocs('c2 hxxp://evil[.]com from 10[.]0[.]0[.]5 and bad[at]evil[.]com') GROUP BY type ORDER BY type"
+  },
+  {
+    "description": "Defang a live URL so it is safe to paste into a report.",
+    "sql": "SELECT ioc.main.defang('http://evil.com/x') AS safe"
+  },
+  {
+    "description": "Pull the defanged IPv4 addresses out of a report, one per row.",
+    "sql": "SELECT UNNEST(ioc.main.extract_ipv4('beacon from 10[.]0[.]0[.]5')) AS ip"
+  },
+  {
+    "description": "Classify a hex digest by algorithm.",
+    "sql": "SELECT ioc.main.hash_type('d41d8cd98f00b204e9800998ecf8427e') AS algorithm"
+  }
+]"#
+                    .to_string(),
                 ),
             ],
             views: vec![ioc_types_view()],

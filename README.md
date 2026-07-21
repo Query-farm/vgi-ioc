@@ -65,7 +65,10 @@ ORDER BY type, value;
 | `extract_cves(text)` | `VARCHAR[]` | CVE identifiers (`CVE-YYYY-NNNN+`). |
 | `hash_type(s)` | `VARCHAR` | `'md5'` / `'sha1'` / `'sha256'` / `'sha512'` by length, else `NULL`. |
 | `is_ioc(text)` | `BOOLEAN` | Whether the text contains **any** recognizable IOC. |
-| `ioc_version()` | `VARCHAR` | Worker version string. |
+
+The worker build version is published as the `ioc` catalog's
+`implementation_version` (read it from `vgi_catalogs()`), not as a scalar
+function.
 
 ### Table
 
