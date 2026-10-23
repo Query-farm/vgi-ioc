@@ -249,101 +249,63 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                 "https://github.com/Query-farm/vgi-ioc/blob/main/README.md".to_string(),
             ),
             // VGI152: analyst tasks `vgi-lint simulate` uses to measure how well an
-            // agent can actually drive this worker. Each reference_sql is
-            // self-contained and runnable against an attached `ioc` worker.
+            // agent can actually drive this worker. Only name + prompt are
+            // published here (VGI416); the private graders (reference_sql etc.)
+            // live in vgi-agent-tests.yaml at the repo root.
             (
                 "vgi.agent_test_tasks".to_string(),
                 r#"[
   {
     "name": "extract-all-iocs",
-    "prompt": "From the text 'beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5', list every indicator of compromise, one indicator per row, with two columns: its type and its value.",
-    "reference_sql": "SELECT type, value FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5') ORDER BY type, value",
-    "unordered": true,
-    "ignore_column_names": true
+    "prompt": "From the text 'beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5', list every indicator of compromise, one indicator per row, with two columns: its type and its value."
   },
   {
     "name": "defang-url",
-    "prompt": "Return a single value: the URL http://evil.com/x rewritten into its defanged, safe-to-share form (so it cannot be clicked when pasted into a report).",
-    "reference_sql": "SELECT ioc.main.defang('http://evil.com/x') AS safe",
-    "unordered": true,
-    "ignore_column_names": true
+    "prompt": "Return a single value: the URL http://evil.com/x rewritten into its defanged, safe-to-share form (so it cannot be clicked when pasted into a report)."
   },
   {
     "name": "classify-hash",
-    "prompt": "Return a single value naming the hash algorithm that produced the digest d41d8cd98f00b204e9800998ecf8427e.",
-    "reference_sql": "SELECT ioc.main.hash_type('d41d8cd98f00b204e9800998ecf8427e') AS algorithm",
-    "unordered": true,
-    "ignore_column_names": true
+    "prompt": "Return a single value naming the hash algorithm that produced the digest d41d8cd98f00b204e9800998ecf8427e."
   },
   {
     "name": "detect-ioc",
-    "prompt": "Return a single boolean value that is true when the text 'exploiting CVE-2024-1234 in the wild' contains any indicator of compromise, and false otherwise.",
-    "reference_sql": "SELECT ioc.main.is_ioc('exploiting CVE-2024-1234 in the wild') AS has_ioc",
-    "unordered": true,
-    "ignore_column_names": true
+    "prompt": "Return a single boolean value that is true when the text 'exploiting CVE-2024-1234 in the wild' contains any indicator of compromise, and false otherwise."
   },
   {
     "name": "extract-ipv4-from-defanged",
-    "prompt": "From the defanged report 'callback from 10[.]0[.]0[.]5 and 192[.]168[.]1[.]1', return the IPv4 addresses one address per row (a single column of scalar address strings, not a list).",
-    "reference_sql": "SELECT UNNEST(ioc.main.extract_ipv4('callback from 10[.]0[.]0[.]5 and 192[.]168[.]1[.]1')) AS ip ORDER BY ip",
-    "unordered": true,
-    "ignore_column_names": true
+    "prompt": "From the defanged report 'callback from 10[.]0[.]0[.]5 and 192[.]168[.]1[.]1', return the IPv4 addresses one address per row (a single column of scalar address strings, not a list)."
   },
   {
     "name": "extract-ipv6",
-    "prompt": "From the text 'C2 at 2001:db8::1 observed', return the IPv6 addresses, one address per row (a single column of scalar address strings, not a list).",
-    "reference_sql": "SELECT UNNEST(ioc.main.extract_ipv6('C2 at 2001:db8::1 observed')) AS ip",
-    "unordered": true,
-    "ignore_column_names": true
+    "prompt": "From the text 'C2 at 2001:db8::1 observed', return the IPv6 addresses, one address per row (a single column of scalar address strings, not a list)."
   },
   {
     "name": "extract-urls",
-    "prompt": "From the defanged text 'payload from hxxp://evil[.]com/x', return the URLs in live (clickable) form, one URL per row.",
-    "reference_sql": "SELECT UNNEST(ioc.main.extract_urls('payload from hxxp://evil[.]com/x')) AS url",
-    "unordered": true,
-    "ignore_column_names": true
+    "prompt": "From the defanged text 'payload from hxxp://evil[.]com/x', return the URLs in live (clickable) form, one URL per row."
   },
   {
     "name": "extract-domains",
-    "prompt": "From the defanged text 'callback to evil[.]example[.]com', return the bare domain names, one domain per row.",
-    "reference_sql": "SELECT UNNEST(ioc.main.extract_domains('callback to evil[.]example[.]com')) AS domain",
-    "unordered": true,
-    "ignore_column_names": true
+    "prompt": "From the defanged text 'callback to evil[.]example[.]com', return the bare domain names, one domain per row."
   },
   {
     "name": "extract-emails",
-    "prompt": "From the defanged text 'phish from bad[at]evil[.]com', return the e-mail addresses in live form, one address per row.",
-    "reference_sql": "SELECT UNNEST(ioc.main.extract_emails('phish from bad[at]evil[.]com')) AS email",
-    "unordered": true,
-    "ignore_column_names": true
+    "prompt": "From the defanged text 'phish from bad[at]evil[.]com', return the e-mail addresses in live form, one address per row."
   },
   {
     "name": "extract-hashes",
-    "prompt": "From the text 'sample md5 d41d8cd98f00b204e9800998ecf8427e', return the file hashes, one hash per row.",
-    "reference_sql": "SELECT UNNEST(ioc.main.extract_hashes('sample md5 d41d8cd98f00b204e9800998ecf8427e')) AS hash",
-    "unordered": true,
-    "ignore_column_names": true
+    "prompt": "From the text 'sample md5 d41d8cd98f00b204e9800998ecf8427e', return the file hashes, one hash per row."
   },
   {
     "name": "extract-cves",
-    "prompt": "From the text 'exploiting CVE-2024-1234 in the wild', return the CVE identifiers, one per row.",
-    "reference_sql": "SELECT UNNEST(ioc.main.extract_cves('exploiting CVE-2024-1234 in the wild')) AS cve",
-    "unordered": true,
-    "ignore_column_names": true
+    "prompt": "From the text 'exploiting CVE-2024-1234 in the wild', return the CVE identifiers, one per row."
   },
   {
     "name": "refang-indicator",
-    "prompt": "Return a single value: the defanged indicator 'hxxp://evil[.]com' restored to its live, canonical form.",
-    "reference_sql": "SELECT ioc.main.refang('hxxp://evil[.]com') AS live",
-    "unordered": true,
-    "ignore_column_names": true
+    "prompt": "Return a single value: the defanged indicator 'hxxp://evil[.]com' restored to its live, canonical form."
   },
   {
     "name": "browse-ioc-types",
-    "prompt": "Using the ioc_types reference table in the ioc worker, return a single count of how many distinct indicator types it can recognize.",
-    "reference_sql": "SELECT count(*) AS n FROM ioc.main.ioc_types",
-    "unordered": true,
-    "ignore_column_names": true
+    "prompt": "Using the ioc_types reference table in the ioc worker, return a single count of how many distinct indicator types it can recognize."
   }
 ]"#
                 .to_string(),
@@ -357,6 +319,7 @@ fn catalog_metadata(name: &str) -> CatalogModel {
         implementation_version: Some(version().to_string()),
         schemas: vec![CatSchema {
             name: "main".to_string(),
+            path: Vec::new(),
             comment: Some(
                 "IOC extraction and defang/refang functions for cyber-threat intelligence."
                     .to_string(),

@@ -162,4 +162,9 @@ impl TableProducer for IocProducer {
                 .map_err(|e| RpcError::runtime_error(e.to_string()))?,
         ))
     }
+    // Single batch: every indicator is emitted in one RecordBatch, so there is
+    // no cursor to resume across HTTP turns.
+    fn resume_supported(&self) -> bool {
+        false
+    }
 }

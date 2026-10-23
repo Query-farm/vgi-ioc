@@ -1,0 +1,60 @@
+# Private graders for the agent-suitability suite (`vgi-lint simulate`).
+#
+# The prompts are published in the catalog's vgi.agent_test_tasks tag
+# (crates/ioc-worker/src/lib.rs); the answers live here, keyed by task name, so the agent
+# being graded never sees them. vgi-lint discovers this file in the directory
+# it runs from (the repo root in CI).
+
+tasks:
+  - name: "extract-all-iocs"
+    reference_sql: "SELECT type, value FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5') ORDER BY type, value"
+    unordered: true
+    ignore_column_names: true
+  - name: "defang-url"
+    reference_sql: "SELECT ioc.main.defang('http://evil.com/x') AS safe"
+    unordered: true
+    ignore_column_names: true
+  - name: "classify-hash"
+    reference_sql: "SELECT ioc.main.hash_type('d41d8cd98f00b204e9800998ecf8427e') AS algorithm"
+    unordered: true
+    ignore_column_names: true
+  - name: "detect-ioc"
+    reference_sql: "SELECT ioc.main.is_ioc('exploiting CVE-2024-1234 in the wild') AS has_ioc"
+    unordered: true
+    ignore_column_names: true
+  - name: "extract-ipv4-from-defanged"
+    reference_sql: "SELECT UNNEST(ioc.main.extract_ipv4('callback from 10[.]0[.]0[.]5 and 192[.]168[.]1[.]1')) AS ip ORDER BY ip"
+    unordered: true
+    ignore_column_names: true
+  - name: "extract-ipv6"
+    reference_sql: "SELECT UNNEST(ioc.main.extract_ipv6('C2 at 2001:db8::1 observed')) AS ip"
+    unordered: true
+    ignore_column_names: true
+  - name: "extract-urls"
+    reference_sql: "SELECT UNNEST(ioc.main.extract_urls('payload from hxxp://evil[.]com/x')) AS url"
+    unordered: true
+    ignore_column_names: true
+  - name: "extract-domains"
+    reference_sql: "SELECT UNNEST(ioc.main.extract_domains('callback to evil[.]example[.]com')) AS domain"
+    unordered: true
+    ignore_column_names: true
+  - name: "extract-emails"
+    reference_sql: "SELECT UNNEST(ioc.main.extract_emails('phish from bad[at]evil[.]com')) AS email"
+    unordered: true
+    ignore_column_names: true
+  - name: "extract-hashes"
+    reference_sql: "SELECT UNNEST(ioc.main.extract_hashes('sample md5 d41d8cd98f00b204e9800998ecf8427e')) AS hash"
+    unordered: true
+    ignore_column_names: true
+  - name: "extract-cves"
+    reference_sql: "SELECT UNNEST(ioc.main.extract_cves('exploiting CVE-2024-1234 in the wild')) AS cve"
+    unordered: true
+    ignore_column_names: true
+  - name: "refang-indicator"
+    reference_sql: "SELECT ioc.main.refang('hxxp://evil[.]com') AS live"
+    unordered: true
+    ignore_column_names: true
+  - name: "browse-ioc-types"
+    reference_sql: "SELECT count(*) AS n FROM ioc.main.ioc_types"
+    unordered: true
+    ignore_column_names: true

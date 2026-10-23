@@ -16,7 +16,7 @@ network.
 ## Layout
 
 ```
-Cargo.toml                          workspace; pins vgi = "0.5.0", regex, once_cell
+Cargo.toml                          workspace; pins vgi = "0.46", regex, once_cell
 crates/ioc-worker/
   src/main.rs                       Worker::new(); registers scalars + table fn
   src/ioc.rs                        PURE logic (no Arrow): defang/refang, extractors, classifiers + unit tests
