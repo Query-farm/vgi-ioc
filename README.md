@@ -124,7 +124,7 @@ make lint                        # clippy -D warnings + rustfmt --check
 ```
 
 The SQL E2E suite uses [`haybarn-unittest`](https://pypi.org/project/haybarn-unittest/)
-(`uv tool install haybarn-unittest`).
+(`uv tool install --prerelease allow 'haybarn-unittest>=2.0.0rc11,<2.1'`).
 
 ## License
 

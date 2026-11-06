@@ -170,6 +170,7 @@ fn ioc_types_view() -> CatView {
                 "One-line notes on how this indicator type is matched.".to_string(),
             ),
         ],
+        ..Default::default()
     }
 }
 
