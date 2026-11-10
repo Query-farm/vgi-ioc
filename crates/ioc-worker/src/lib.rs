@@ -188,6 +188,11 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                 "IOC Extraction & Defang/Refang".to_string(),
             ),
             (
+                "vgi.subtitle".to_string(),
+                "Pull indicators of compromise out of threat reports and defang or refang them safely."
+                    .to_string(),
+            ),
+            (
                 "vgi.keywords".to_string(),
                 r#"["ioc","indicator of compromise","cyber threat intelligence","cti","defang","refang","extract","ipv4","ipv6","domain","url","email","hash","md5","sha1","sha256","sha512","cve","threat hunting","malware","security"]"#
                     .to_string(),
@@ -326,7 +331,7 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                     .to_string(),
             ),
             tags: vec![
-                ("vgi.title".to_string(), "IOC — main".to_string()),
+                ("vgi.title".to_string(), "IOC functions".to_string()),
                 (
                     "vgi.keywords".to_string(),
                     r#"["ioc","indicator of compromise","defang","refang","extract_ipv4","extract_ipv6","extract_domains","extract_urls","extract_emails","extract_hashes","extract_cves","hash_type","is_ioc","extract_iocs","cyber threat intelligence","cti","security"]"#
