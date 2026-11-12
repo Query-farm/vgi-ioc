@@ -16,7 +16,7 @@ network.
 ## Layout
 
 ```
-Cargo.toml                          workspace; pins vgi = "0.50.0" (VGI protocol 3.2 → haybarn 2.0), regex, once_cell
+Cargo.toml                          workspace; pins vgi = "0.51.0" (VGI protocol 3.3 → haybarn 2.0), regex, once_cell
 crates/ioc-worker/
   src/main.rs                       Worker::new(); registers scalars + table fn
   src/ioc.rs                        PURE logic (no Arrow): defang/refang, extractors, classifiers + unit tests
