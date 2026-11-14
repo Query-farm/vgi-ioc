@@ -1,0 +1,462 @@
+{
+  "query": "SELECT * FROM duckdb_functions() WHERE database_name='ioc' ORDER BY schema_name,function_name",
+  "columns": [
+    "database_name",
+    "database_oid",
+    "schema_name",
+    "function_name",
+    "alias_of",
+    "function_type",
+    "description",
+    "comment",
+    "tags",
+    "return_type",
+    "parameters",
+    "parameter_types",
+    "varargs",
+    "macro_definition",
+    "has_side_effects",
+    "internal",
+    "extension_name",
+    "function_oid",
+    "examples",
+    "stability",
+    "categories"
+  ],
+  "rows": [
+    [
+      "ioc",
+      "22592",
+      "main",
+      "defang",
+      null,
+      "scalar",
+      "Defang indicators in text so they are safe to share (http->hxxp, .->[.], @->[at], ://->[://])",
+      null,
+      {
+        "vgi.category": "Defang & Refang",
+        "vgi.doc_llm": "Rewrite the live indicators in a string into a neutralized, safe-to-share form so pasting a report into chat, e-mail, or a ticket cannot accidentally create a clickable link or live address: `http`->`hxxp`, `.`->`[.]`, `@`->`[at]`, and `://`->`[://]`. Pure text transform; NULL in -> NULL out. The inverse of `refang`.",
+        "vgi.doc_md": "Defang indicators so they are safe to share, e.g. `defang('http://evil.com/x')` -> `'hxxp[://]evil[.]com/x'`.",
+        "vgi.example_queries": "[\n  {\"description\": \"Defang a live URL so it is safe to paste into a report (returns 'hxxp[://]evil[.]com/x').\", \"sql\": \"SELECT ioc.main.defang('http://evil.com/x');\"},\n  {\"description\": \"Turn a live incident note into a safe-to-share watchlist: extract every indicator with extract_iocs, then defang each value so none of them is clickable.\", \"sql\": \"SELECT i.type, ioc.main.defang(i.value) AS shareable FROM ioc.main.extract_iocs('beacon to http://evil.com/gate.php from 10.0.0.5, contact bad@evil.com') AS i ORDER BY i.type, shareable\"}\n]",
+        "vgi.keywords": "[\"defang\",\"neutralize\",\"sanitize\",\"safe to share\",\"hxxp\",\"bracket dots\",\"make safe\",\"redact link\",\"indicator\",\"url\",\"domain\"]",
+        "vgi.title": "Defang Indicators"
+      },
+      "VARCHAR",
+      [
+        "text"
+      ],
+      [
+        "ANY"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22596,
+      [
+        "SELECT ioc.main.defang('http://evil.com/x');"
+      ],
+      "CONSISTENT",
+      []
+    ],
+    [
+      "ioc",
+      "22592",
+      "main",
+      "extract_cves",
+      null,
+      "scalar",
+      "Extract CVE identifiers (refangs first) as VARCHAR[]",
+      null,
+      {
+        "vgi.category": "Extraction",
+        "vgi.doc_llm": "Extract every distinct CVE identifier (Common Vulnerabilities and Exposures id, e.g. CVE-2024-1234) from free text and return them as a `VARCHAR` list. The input is refanged first. NULL in -> NULL list; no matches -> empty list.",
+        "vgi.doc_md": "Extract CVE identifiers from text as `VARCHAR[]` (refangs first), e.g. `extract_cves('exploiting CVE-2024-1234')` -> `['CVE-2024-1234']`.",
+        "vgi.example_queries": "[\n  {\"description\": \"Pull a CVE identifier out of a report (returns 'CVE-2024-1234').\", \"sql\": \"SELECT UNNEST(ioc.main.extract_cves('exploiting CVE-2024-1234 in the wild'));\"}\n]",
+        "vgi.keywords": "[\"extract cves\",\"cve\",\"vulnerability\",\"cve id\",\"common vulnerabilities and exposures\",\"exploit\",\"advisory\",\"extract cve\"]",
+        "vgi.title": "Extract CVE Identifiers"
+      },
+      "VARCHAR[]",
+      [
+        "text"
+      ],
+      [
+        "ANY"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22597,
+      [
+        "SELECT UNNEST(ioc.main.extract_cves('exploiting CVE-2024-1234 in the wild'));"
+      ],
+      "CONSISTENT",
+      []
+    ],
+    [
+      "ioc",
+      "22592",
+      "main",
+      "extract_domains",
+      null,
+      "scalar",
+      "Extract bare domains (refangs first; URL/e-mail hosts excluded) as VARCHAR[]",
+      null,
+      {
+        "vgi.category": "Extraction",
+        "vgi.doc_llm": "Extract every distinct bare domain name from free text and return them as a `VARCHAR` list. The input is refanged first. Hosts already claimed by a URL or e-mail are excluded to avoid double-reporting, and a domain must have an alphabetic TLD of at least two characters. NULL in -> NULL list; no matches -> empty list.",
+        "vgi.doc_md": "Extract bare domains from text as `VARCHAR[]` (refangs first; URL/e-mail hosts excluded), e.g. `extract_domains('callback to evil[.]example[.]com')` -> `['evil.example.com']`.",
+        "vgi.example_queries": "[\n  {\"description\": \"Pull a bare defanged domain out of a report (returns 'evil.example.com').\", \"sql\": \"SELECT UNNEST(ioc.main.extract_domains('callback to evil[.]example[.]com'));\"}\n]",
+        "vgi.keywords": "[\"extract domains\",\"domain\",\"hostname\",\"fqdn\",\"bare domain\",\"refang\",\"c2 domain\",\"extract domain\"]",
+        "vgi.title": "Extract Bare Domains"
+      },
+      "VARCHAR[]",
+      [
+        "text"
+      ],
+      [
+        "ANY"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22598,
+      [
+        "SELECT UNNEST(ioc.main.extract_domains('callback to evil[.]example[.]com'));"
+      ],
+      "CONSISTENT",
+      []
+    ],
+    [
+      "ioc",
+      "22592",
+      "main",
+      "extract_emails",
+      null,
+      "scalar",
+      "Extract e-mail addresses (refangs first) as VARCHAR[]",
+      null,
+      {
+        "vgi.category": "Extraction",
+        "vgi.doc_llm": "Extract every distinct e-mail address from free text and return them as a `VARCHAR` list in live (refanged) form. The input is refanged first, so defanged forms like 'bad[at]evil[.]com' are matched. NULL in -> NULL list; no matches -> empty list.",
+        "vgi.doc_md": "Extract e-mail addresses from text as `VARCHAR[]` (refangs first), e.g. `extract_emails('phish from bad[at]evil[.]com')` -> `['bad@evil.com']`.",
+        "vgi.example_queries": "[\n  {\"description\": \"Pull a defanged e-mail address out of a report (returns 'bad@evil.com').\", \"sql\": \"SELECT UNNEST(ioc.main.extract_emails('phish from bad[at]evil[.]com'));\"}\n]",
+        "vgi.keywords": "[\"extract emails\",\"email\",\"e-mail\",\"address\",\"phishing\",\"sender\",\"refang\",\"at sign\",\"extract email\"]",
+        "vgi.title": "Extract E-mail Addresses"
+      },
+      "VARCHAR[]",
+      [
+        "text"
+      ],
+      [
+        "ANY"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22599,
+      [
+        "SELECT UNNEST(ioc.main.extract_emails('phish from bad[at]evil[.]com'));"
+      ],
+      "CONSISTENT",
+      []
+    ],
+    [
+      "ioc",
+      "22592",
+      "main",
+      "extract_hashes",
+      null,
+      "scalar",
+      "Extract md5/sha1/sha256/sha512 hashes (refangs first) as VARCHAR[]",
+      null,
+      {
+        "vgi.category": "Extraction",
+        "vgi.doc_llm": "Extract every distinct file hash (md5, sha1, sha256, sha512) from free text and return them as a `VARCHAR` list. The input is refanged first. Pair with `hash_type` to label each hash by algorithm. NULL in -> NULL list; no matches -> empty list.",
+        "vgi.doc_md": "Extract md5/sha1/sha256/sha512 hashes from text as `VARCHAR[]` (refangs first), e.g. `extract_hashes('sample md5 d41d8cd9...')` -> `['d41d8cd9...']`.",
+        "vgi.example_queries": "[\n  {\"description\": \"Pull a file hash out of a report (returns 'd41d8cd98f00b204e9800998ecf8427e').\", \"sql\": \"SELECT UNNEST(ioc.main.extract_hashes('sample md5 d41d8cd98f00b204e9800998ecf8427e'));\"},\n  {\"description\": \"For each alert in a table, list the file hashes it mentions with their algorithm: unnest extract_hashes over the alert text and label each hash with hash_type (alerts without hashes produce no rows).\", \"sql\": \"WITH alerts(id, body) AS (VALUES (1, 'dropped d41d8cd98f00b204e9800998ecf8427e and da39a3ee5e6b4b0d3255bfef95601890afd80709'), (2, 'user reset password'), (3, 'payload e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')) SELECT a.id, h.hash, ioc.main.hash_type(h.hash) AS algorithm FROM alerts AS a, UNNEST(ioc.main.extract_hashes(a.body)) AS h(hash) ORDER BY a.id, algorithm\"}\n]",
+        "vgi.keywords": "[\"extract hashes\",\"hash\",\"md5\",\"sha1\",\"sha256\",\"sha512\",\"file hash\",\"fingerprint\",\"checksum\",\"sample\",\"refang\",\"extract hash\"]",
+        "vgi.title": "Extract File Hashes"
+      },
+      "VARCHAR[]",
+      [
+        "text"
+      ],
+      [
+        "ANY"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22600,
+      [
+        "SELECT UNNEST(ioc.main.extract_hashes('sample md5 d41d8cd98f00b204e9800998ecf8427e'));"
+      ],
+      "CONSISTENT",
+      []
+    ],
+    [
+      "ioc",
+      "22592",
+      "main",
+      "extract_iocs",
+      null,
+      "table",
+      "Extract every distinct IOC from text as (type, value) rows (refangs first; deduplicated)",
+      null,
+      {
+        "vgi.category": "Extraction",
+        "vgi.doc_llm": "Scan free text and return every distinct indicator of compromise as (type, value) rows, one row per indicator. Covered types are ipv4, ipv6, url, email, domain, md5, sha1, sha256, sha512, and cve. The text is refanged first so defanged indicators are found, results are deduplicated, and URL/e-mail hosts are not double-reported as bare domains. The text argument is a bind-time constant; a NULL or empty text yields zero rows. Use this as the one-shot table function when you want all indicator types at once instead of calling each extractor separately.",
+        "vgi.doc_md": "Extract every distinct IOC from text as `(type, value)` rows: one row per indicator, across all supported types at once. The input is refanged first so defanged indicators are still found, results are deduplicated, and a URL or e-mail host is not double-reported as a bare domain.",
+        "vgi.example_queries": "[\n  {\"description\": \"Extract every distinct indicator from a defanged report as (type, value) rows.\", \"sql\": \"SELECT type, value FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5') ORDER BY type, value\"},\n  {\"description\": \"Count the distinct indicators found in a report, grouped by indicator type.\", \"sql\": \"SELECT type, count(*) AS n FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5 and bad[at]evil[.]com') GROUP BY type ORDER BY type\"},\n  {\"description\": \"Keep only the network-layer indicators (IPs, domains, URLs) from a report.\", \"sql\": \"SELECT value FROM ioc.main.extract_iocs('c2 hxxp://evil[.]com from 10[.]0[.]0[.]5') WHERE type IN ('ipv4', 'ipv6', 'url', 'domain') ORDER BY value\"},\n  {\"description\": \"Label every indicator pulled from a defanged report with its coarse group (network, email, hash, vulnerability) and the single-type extractor for it, by joining extract_iocs to the ioc_types registry.\", \"sql\": \"SELECT t.kind, i.type, i.value, t.extractor FROM ioc.main.extract_iocs('dropper hxxps://cdn[.]evil[.]com/a.exe (sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855) beacons to 203[.]0[.]113[.]7, exploits CVE-2021-44228, phish from ops[at]evil[.]com') AS i JOIN ioc.main.ioc_types AS t ON t.name = i.type ORDER BY t.kind, i.type, i.value\"},\n  {\"description\": \"Turn a live incident note into a safe-to-share watchlist: extract every indicator with extract_iocs, then defang each value so none of them is clickable.\", \"sql\": \"SELECT i.type, ioc.main.defang(i.value) AS shareable FROM ioc.main.extract_iocs('beacon to http://evil.com/gate.php from 10.0.0.5, contact bad@evil.com') AS i ORDER BY i.type, shareable\"}\n]",
+        "vgi.executable_examples": "[\n  {\"description\": \"Extract every distinct indicator from a defanged report as (type, value) rows.\", \"sql\": \"SELECT type, value FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5') ORDER BY type, value\"},\n  {\"description\": \"Count the distinct indicators found in a report, grouped by indicator type.\", \"sql\": \"SELECT type, count(*) AS n FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5 and bad[at]evil[.]com') GROUP BY type ORDER BY type\"},\n  {\"description\": \"Keep only the network-layer indicators (IPs, domains, URLs) from a report.\", \"sql\": \"SELECT value FROM ioc.main.extract_iocs('c2 hxxp://evil[.]com from 10[.]0[.]0[.]5') WHERE type IN ('ipv4', 'ipv6', 'url', 'domain') ORDER BY value\"},\n  {\"description\": \"Label every indicator pulled from a defanged report with its coarse group (network, email, hash, vulnerability) and the single-type extractor for it, by joining extract_iocs to the ioc_types registry.\", \"sql\": \"SELECT t.kind, i.type, i.value, t.extractor FROM ioc.main.extract_iocs('dropper hxxps://cdn[.]evil[.]com/a.exe (sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855) beacons to 203[.]0[.]113[.]7, exploits CVE-2021-44228, phish from ops[at]evil[.]com') AS i JOIN ioc.main.ioc_types AS t ON t.name = i.type ORDER BY t.kind, i.type, i.value\"},\n  {\"description\": \"Turn a live incident note into a safe-to-share watchlist: extract every indicator with extract_iocs, then defang each value so none of them is clickable.\", \"sql\": \"SELECT i.type, ioc.main.defang(i.value) AS shareable FROM ioc.main.extract_iocs('beacon to http://evil.com/gate.php from 10.0.0.5, contact bad@evil.com') AS i ORDER BY i.type, shareable\"}\n]",
+        "vgi.keywords": "[\"extract iocs\",\"all indicators\",\"ioc table\",\"type value\",\"ipv4\",\"ipv6\",\"url\",\"email\",\"domain\",\"hash\",\"cve\",\"threat report\",\"refang\",\"deduplicate\",\"one-shot\"]",
+        "vgi.result_columns_schema": "[\n  {\"name\": \"type\", \"type\": \"VARCHAR\", \"description\": \"Indicator type: one of ipv4, ipv6, url, email, domain, md5, sha1, sha256, sha512, cve.\"},\n  {\"name\": \"value\", \"type\": \"VARCHAR\", \"description\": \"The refanged (live-form) indicator value.\"}\n]",
+        "vgi.title": "Extract All IOCs"
+      },
+      null,
+      [
+        "text"
+      ],
+      [
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22607,
+      [
+        "SELECT type, value FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5') ORDER BY type, value"
+      ],
+      null,
+      []
+    ],
+    [
+      "ioc",
+      "22592",
+      "main",
+      "extract_ipv4",
+      null,
+      "scalar",
+      "Extract IPv4 addresses (refangs first; private/reserved included) as VARCHAR[]",
+      null,
+      {
+        "vgi.category": "Extraction",
+        "vgi.doc_llm": "Extract every distinct IPv4 address from free text and return them as a `VARCHAR` list. The input is refanged first, so defanged forms like '10[.]0[.]0[.]5' are matched; private and reserved ranges are kept because they are still real indicators in a report. NULL in -> NULL list; no matches -> empty list.",
+        "vgi.doc_md": "Extract IPv4 addresses from text as `VARCHAR[]` (refangs first), e.g. `extract_ipv4('beacon from 10[.]0[.]0[.]5')` -> `['10.0.0.5']`.",
+        "vgi.example_queries": "[\n  {\"description\": \"Pull the defanged IPv4 address out of a report (returns '10.0.0.5').\", \"sql\": \"SELECT UNNEST(ioc.main.extract_ipv4('beacon from 10[.]0[.]0[.]5'));\"}\n]",
+        "vgi.keywords": "[\"extract ipv4\",\"ip address\",\"ipv4\",\"ip\",\"network indicator\",\"beacon\",\"c2\",\"refang\",\"extract ip\"]",
+        "vgi.title": "Extract IPv4 Addresses"
+      },
+      "VARCHAR[]",
+      [
+        "text"
+      ],
+      [
+        "ANY"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22601,
+      [
+        "SELECT UNNEST(ioc.main.extract_ipv4('beacon from 10[.]0[.]0[.]5'));"
+      ],
+      "CONSISTENT",
+      []
+    ],
+    [
+      "ioc",
+      "22592",
+      "main",
+      "extract_ipv6",
+      null,
+      "scalar",
+      "Extract IPv6 addresses (refangs first; canonicalized) as VARCHAR[]",
+      null,
+      {
+        "vgi.category": "Extraction",
+        "vgi.doc_llm": "Extract every distinct IPv6 address from free text and return them as a `VARCHAR` list, canonicalized to their compressed form. The input is refanged first. NULL in -> NULL list; no matches -> empty list.",
+        "vgi.doc_md": "Extract IPv6 addresses from text as `VARCHAR[]` (refangs first, canonicalized), e.g. `extract_ipv6('C2 at 2001:db8::1')` -> `['2001:db8::1']`.",
+        "vgi.example_queries": "[\n  {\"description\": \"Pull an IPv6 address out of free text (returns '2001:db8::1').\", \"sql\": \"SELECT UNNEST(ioc.main.extract_ipv6('C2 at 2001:db8::1 observed'));\"}\n]",
+        "vgi.keywords": "[\"extract ipv6\",\"ipv6\",\"ip address\",\"ip\",\"network indicator\",\"c2\",\"refang\",\"extract ip\"]",
+        "vgi.title": "Extract IPv6 Addresses"
+      },
+      "VARCHAR[]",
+      [
+        "text"
+      ],
+      [
+        "ANY"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22602,
+      [
+        "SELECT UNNEST(ioc.main.extract_ipv6('C2 at 2001:db8::1 observed'));"
+      ],
+      "CONSISTENT",
+      []
+    ],
+    [
+      "ioc",
+      "22592",
+      "main",
+      "extract_urls",
+      null,
+      "scalar",
+      "Extract URLs (refangs first) as VARCHAR[]",
+      null,
+      {
+        "vgi.category": "Extraction",
+        "vgi.doc_llm": "Extract every distinct URL from free text and return them as a `VARCHAR` list in live (refanged) form. The input is refanged first, so defanged links like 'hxxp://evil[.]com/x' are matched. NULL in -> NULL list; no matches -> empty list.",
+        "vgi.doc_md": "Extract URLs from text as `VARCHAR[]` (refangs first), e.g. `extract_urls('payload from hxxp://evil[.]com/x')` -> `['http://evil.com/x']`.",
+        "vgi.example_queries": "[\n  {\"description\": \"Pull a defanged URL out of a report (returns 'http://evil.com/x').\", \"sql\": \"SELECT UNNEST(ioc.main.extract_urls('payload from hxxp://evil[.]com/x'));\"}\n]",
+        "vgi.keywords": "[\"extract urls\",\"url\",\"link\",\"uri\",\"web address\",\"refang\",\"payload url\",\"c2 url\",\"extract url\"]",
+        "vgi.title": "Extract Web URLs"
+      },
+      "VARCHAR[]",
+      [
+        "text"
+      ],
+      [
+        "ANY"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22603,
+      [
+        "SELECT UNNEST(ioc.main.extract_urls('payload from hxxp://evil[.]com/x'));"
+      ],
+      "CONSISTENT",
+      []
+    ],
+    [
+      "ioc",
+      "22592",
+      "main",
+      "hash_type",
+      null,
+      "scalar",
+      "Classify a hex string as 'md5'|'sha1'|'sha256'|'sha512' by length, or NULL if it is not a recognized hash",
+      null,
+      {
+        "vgi.category": "Classification",
+        "vgi.doc_llm": "Classify a hexadecimal string as a file-hash algorithm by its length: 32 hex chars -> 'md5', 40 -> 'sha1', 64 -> 'sha256', 128 -> 'sha512'. Returns NULL for anything that is not a recognized hash length. Use it to label extracted hash indicators by algorithm.",
+        "vgi.doc_md": "Classify a hex string by length as `md5`/`sha1`/`sha256`/`sha512`, or NULL, e.g. `hash_type('d41d8cd98f00b204e9800998ecf8427e')` -> `'md5'`.",
+        "vgi.example_queries": "[\n  {\"description\": \"Classify a 32-character hex string as an MD5 hash (returns 'md5').\", \"sql\": \"SELECT ioc.main.hash_type('d41d8cd98f00b204e9800998ecf8427e');\"},\n  {\"description\": \"For each alert in a table, list the file hashes it mentions with their algorithm: unnest extract_hashes over the alert text and label each hash with hash_type (alerts without hashes produce no rows).\", \"sql\": \"WITH alerts(id, body) AS (VALUES (1, 'dropped d41d8cd98f00b204e9800998ecf8427e and da39a3ee5e6b4b0d3255bfef95601890afd80709'), (2, 'user reset password'), (3, 'payload e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')) SELECT a.id, h.hash, ioc.main.hash_type(h.hash) AS algorithm FROM alerts AS a, UNNEST(ioc.main.extract_hashes(a.body)) AS h(hash) ORDER BY a.id, algorithm\"}\n]",
+        "vgi.keywords": "[\"hash type\",\"hash_type\",\"md5\",\"sha1\",\"sha256\",\"sha512\",\"classify hash\",\"hash length\",\"fingerprint\",\"file hash\",\"algorithm\"]",
+        "vgi.title": "Classify Hash Type"
+      },
+      "VARCHAR",
+      [
+        "s"
+      ],
+      [
+        "ANY"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22604,
+      [
+        "SELECT ioc.main.hash_type('d41d8cd98f00b204e9800998ecf8427e');"
+      ],
+      "CONSISTENT",
+      []
+    ],
+    [
+      "ioc",
+      "22592",
+      "main",
+      "is_ioc",
+      null,
+      "scalar",
+      "True if the text contains ANY recognizable IOC (refangs first)",
+      null,
+      {
+        "vgi.category": "Classification",
+        "vgi.doc_llm": "Return true when the given free text contains ANY recognizable indicator of compromise \u2014 an IPv4/IPv6 address, domain, URL, e-mail, file hash, or CVE id. The text is refanged first, so defanged indicators (hxxp, [.], [at]) still count. Use it as a fast predicate to flag or filter rows worth deeper extraction.",
+        "vgi.doc_md": "True if text contains any IOC (refangs first), e.g. `is_ioc('beacon to 10[.]0[.]0[.]5')` -> `true`.",
+        "vgi.example_queries": "[\n  {\"description\": \"Test whether free text contains any indicator of compromise (returns true).\", \"sql\": \"SELECT ioc.main.is_ioc('beacon to 10[.]0[.]0[.]5');\"},\n  {\"description\": \"Triage a ticket queue: keep only tickets whose text contains any indicator (is_ioc), then count the IPv4 addresses, URLs and CVEs each one mentions.\", \"sql\": \"WITH tickets(id, body) AS (VALUES (1, 'beacon to hxxp://evil[.]com/x from 10[.]0[.]0[.]5'), (2, 'password reset for jsmith'), (3, 'exploiting CVE-2024-1234 via 10[.]0[.]0[.]5 and 10[.]0[.]0[.]9'), (4, 'printer offline on floor 3')) SELECT id, len(ioc.main.extract_ipv4(body)) AS n_ips, len(ioc.main.extract_urls(body)) AS n_urls, len(ioc.main.extract_cves(body)) AS n_cves FROM tickets WHERE ioc.main.is_ioc(body) ORDER BY id\"}\n]",
+        "vgi.keywords": "[\"is_ioc\",\"contains ioc\",\"has indicator\",\"detect\",\"predicate\",\"flag\",\"screen\",\"triage\",\"threat detection\"]",
+        "vgi.title": "Text Contains IOC"
+      },
+      "BOOLEAN",
+      [
+        "text"
+      ],
+      [
+        "ANY"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22605,
+      [
+        "SELECT ioc.main.is_ioc('beacon to 10[.]0[.]0[.]5');"
+      ],
+      "CONSISTENT",
+      []
+    ],
+    [
+      "ioc",
+      "22592",
+      "main",
+      "refang",
+      null,
+      "scalar",
+      "Refang defanged indicators back to live form (hxxp->http, [.]->., [at]->@, [://]->://)",
+      null,
+      {
+        "vgi.category": "Defang & Refang",
+        "vgi.doc_llm": "Restore defanged indicators in a string back to their live, canonical form: `hxxp`->`http`, `[.]`->`.`, `[at]`->`@`, and `[://]`->`://`. The inverse of `defang`. Pure text transform; NULL in -> NULL out. The extractors call this internally so defanged indicators are still matched.",
+        "vgi.doc_md": "Refang defanged indicators back to live form, e.g. `refang('hxxp://evil[.]com')` -> `'http://evil.com'`.",
+        "vgi.example_queries": "[\n  {\"description\": \"Refang a defanged URL back to live form (returns 'http://evil.com').\", \"sql\": \"SELECT ioc.main.refang('hxxp://evil[.]com');\"}\n]",
+        "vgi.keywords": "[\"refang\",\"restore\",\"undefang\",\"rehydrate\",\"live form\",\"canonical\",\"hxxp to http\",\"unbracket\",\"indicator\",\"url\",\"domain\"]",
+        "vgi.title": "Refang Indicators"
+      },
+      "VARCHAR",
+      [
+        "text"
+      ],
+      [
+        "ANY"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22606,
+      [
+        "SELECT ioc.main.refang('hxxp://evil[.]com');"
+      ],
+      "CONSISTENT",
+      []
+    ]
+  ]
+}

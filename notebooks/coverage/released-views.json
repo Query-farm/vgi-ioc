@@ -1,0 +1,44 @@
+{
+  "query": "SELECT * FROM duckdb_views() WHERE database_name='ioc' ORDER BY schema_name,view_name",
+  "columns": [
+    "database_name",
+    "database_oid",
+    "schema_name",
+    "schema_oid",
+    "view_name",
+    "view_oid",
+    "comment",
+    "tags",
+    "internal",
+    "temporary",
+    "column_count",
+    "sql",
+    "is_bound"
+  ],
+  "rows": [
+    [
+      "ioc",
+      22592,
+      "main",
+      22799,
+      "ioc_types",
+      22800,
+      "Registry of the indicator-of-compromise types this worker recognizes: for each type, the group it belongs to, the function that extracts it, a defanged example, and a one-line description.",
+      {
+        "domain": "security",
+        "topic": "ioc-reference",
+        "vgi.category": "Reference",
+        "vgi.doc_llm": "A browsable reference table listing every indicator-of-compromise type this worker can recognize. Columns: `name` (the type, e.g. ipv4, sha256, cve), `kind` (a coarse group: network, email, hash, or vulnerability), `extractor` (the scalar function that pulls this type out of text, e.g. extract_ipv4), `example` (a short defanged sample value), and `description`. Query it to discover what the worker extracts and which function to call, before running the specific extractor or the all-in-one extract_iocs table function. Ten rows, one per type; no arguments, no network, always safe to scan.",
+        "vgi.doc_md": "## `ioc_types` \u2014 indicator type registry\n\nA small, static reference table you can browse to see exactly which indicator-of-compromise types this worker recognizes and which function extracts each. Handy as a first stop before calling a specific extractor.\n\n| column | meaning |\n|---|---|\n| `name` | the indicator type \u2014 `ipv4`, `ipv6`, `domain`, `url`, `email`, `md5`, `sha1`, `sha256`, `sha512`, `cve` |\n| `kind` | coarse group: `network`, `email`, `hash`, or `vulnerability` |\n| `extractor` | the scalar function that pulls this type out of text |\n| `example` | a short defanged sample value |\n| `description` | one-line notes on how the type is matched |\n\nTen rows, one per type. It is backed by an inline literal list, so scanning it needs no network or credentials. To pull every type out of a report at once, use the `extract_iocs` table function instead.",
+        "vgi.example_queries": "[\n  {\n    \"description\": \"List the network-layer indicator types and the function that extracts each.\",\n    \"sql\": \"SELECT name, extractor FROM ioc.main.ioc_types WHERE kind = 'network' ORDER BY name\"\n  },\n  {\n    \"description\": \"Count how many indicator types fall into each coarse group.\",\n    \"sql\": \"SELECT kind, count(*) AS n_types FROM ioc.main.ioc_types GROUP BY kind ORDER BY kind\"\n  }\n]",
+        "vgi.keywords": "[\"ioc types\",\"indicator types\",\"registry\",\"reference\",\"catalog\",\"ipv4\",\"ipv6\",\"domain\",\"url\",\"email\",\"hash\",\"cve\",\"extractor\",\"which function\"]",
+        "vgi.title": "IOC Type Registry"
+      },
+      false,
+      false,
+      null,
+      "CREATE VIEW ioc_types AS SELECT * FROM (SELECT * FROM (VALUES ('ipv4', 'network', 'extract_ipv4', '10[.]0[.]0[.]5', 'IPv4 address; private and reserved ranges are kept because they are still real indicators in a report.'), ('ipv6', 'network', 'extract_ipv6', '2001:db8::1', 'IPv6 address, canonicalized to its compressed form.'), ('domain', 'network', 'extract_domains', 'evil[.]example[.]com', 'Bare domain name with an alphabetic TLD of at least two characters; hosts already claimed by a URL or e-mail are excluded.'), ('url', 'network', 'extract_urls', 'hxxp://evil[.]com/x', 'Web URL, returned in live (refanged) form.'), ('email', 'email', 'extract_emails', 'bad[at]evil[.]com', 'E-mail address, returned in live (refanged) form.'), ('md5', 'hash', 'extract_hashes', 'd41d8cd98f00b204e9800998ecf8427e', '32 hex-character MD5 file hash; label it with hash_type.'), ('sha1', 'hash', 'extract_hashes', 'da39a3ee5e6b4b0d3255bfef95601890afd80709', '40 hex-character SHA-1 file hash; label it with hash_type.'), ('sha256', 'hash', 'extract_hashes', 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', '64 hex-character SHA-256 file hash; label it with hash_type.'), ('sha512', 'hash', 'extract_hashes', 'cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e', '128 hex-character SHA-512 file hash; label it with hash_type.'), ('cve', 'vulnerability', 'extract_cves', 'CVE-2024-1234', 'CVE identifier (Common Vulnerabilities and Exposures).')) AS valueslist) AS t(\"name\", kind, extractor, example, description);",
+      false
+    ]
+  ]
+}

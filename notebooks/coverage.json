@@ -1,0 +1,481 @@
+{
+  "schema_version": 1,
+  "catalogs": {
+    "released": {
+      "path": "coverage/catalog-released.json",
+      "sha256": "46852efd1caa1a15eabf8aa68e0cfab5b23e3003d1df40210c38e37685038f46",
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T19:40:42.751197+00:00",
+        "catalog_sha256": "46852efd1caa1a15eabf8aa68e0cfab5b23e3003d1df40210c38e37685038f46",
+        "notes": "Complete native function/table/view exports from real Haybarn attachments, reconciled with Rust build_worker registration. Thirteen logical names; ioc_types table/function alias counted once. No authentication/write or difficult objects excluded. Released/current interface is identical; current source fixes URL-path/email-local-part false positives. That behavior difference is preserved in release-current-diagnostic.json and explicitly described next to the notebook diagnostic. Current catalog collected from the existing previously validated source binary; no source rebuild."
+      }
+    },
+    "current": {
+      "path": "coverage/catalog-current.json",
+      "sha256": "f83553b767fffd534ac509212fb417cf41336305bba5910459a6c0f982628809",
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T19:40:42.751197+00:00",
+        "catalog_sha256": "f83553b767fffd534ac509212fb417cf41336305bba5910459a6c0f982628809",
+        "notes": "Complete native function/table/view exports from real Haybarn attachments, reconciled with Rust build_worker registration. Thirteen logical names; ioc_types table/function alias counted once. No authentication/write or difficult objects excluded. Released/current interface is identical; current source fixes URL-path/email-local-part false positives. That behavior difference is preserved in release-current-diagnostic.json and explicitly described next to the notebook diagnostic. Current catalog collected from the existing previously validated source binary; no source rebuild."
+      }
+    }
+  },
+  "notebooks": [
+    {
+      "path": "01_count_report_support_not_mentions.ipynb",
+      "sha256": "ac451689ce3145192515ee9043922e275b188d3aa50f8228a9e9afe8a1ac99f2",
+      "execution": {
+        "path": "coverage/run-01.json",
+        "sha256": "29f098a8bf45eaea1bf4ee87bf29296b052e3e812d2c965638a677a9989a0ba3"
+      }
+    }
+  ],
+  "examples": [
+    {
+      "object": {
+        "schema": "main",
+        "name": "extract_ipv4"
+      },
+      "notebook": "01_count_report_support_not_mentions.ipynb",
+      "sql": [
+        {
+          "cell": "fc90d8e6",
+          "reference": "ioc.main.extract_ipv4"
+        }
+      ],
+      "narrative_cells": [
+        "3fb586b5"
+      ],
+      "result_cells": [
+        "b611012b"
+      ],
+      "interpretation_cells": [
+        "14987ee1"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T19:40:42.751197+00:00",
+        "notebook_sha256": "ac451689ce3145192515ee9043922e275b188d3aa50f8228a9e9afe8a1ac99f2",
+        "catalog_sha256": [
+          "46852efd1caa1a15eabf8aa68e0cfab5b23e3003d1df40210c38e37685038f46",
+          "f83553b767fffd534ac509212fb417cf41336305bba5910459a6c0f982628809"
+        ],
+        "purpose": "Compare deduplicated IPv4 support across reports.",
+        "finding": "The repeated ordinary/defanged 192.0.2.10 in R1 contributes one report-indicator row; the second report adds support, while private 10.0.0.1 remains its own typed candidate."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "extract_ipv6"
+      },
+      "notebook": "01_count_report_support_not_mentions.ipynb",
+      "sql": [
+        {
+          "cell": "fc90d8e6",
+          "reference": "ioc.main.extract_ipv6"
+        }
+      ],
+      "narrative_cells": [
+        "3fb586b5"
+      ],
+      "result_cells": [
+        "b611012b"
+      ],
+      "interpretation_cells": [
+        "14987ee1"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T19:40:42.751197+00:00",
+        "notebook_sha256": "ac451689ce3145192515ee9043922e275b188d3aa50f8228a9e9afe8a1ac99f2",
+        "catalog_sha256": [
+          "46852efd1caa1a15eabf8aa68e0cfab5b23e3003d1df40210c38e37685038f46",
+          "f83553b767fffd534ac509212fb417cf41336305bba5910459a6c0f982628809"
+        ],
+        "purpose": "Retain IPv6 as its own candidate category.",
+        "finding": "The documentation IPv6 address 2001:db8::1 appears in R3 and one report; it remains visible below the experiment threshold 2 instead of being silently dropped from the population."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "extract_urls"
+      },
+      "notebook": "01_count_report_support_not_mentions.ipynb",
+      "sql": [
+        {
+          "cell": "fc90d8e6",
+          "reference": "ioc.main.extract_urls"
+        }
+      ],
+      "narrative_cells": [
+        "3fb586b5"
+      ],
+      "result_cells": [
+        "b611012b"
+      ],
+      "interpretation_cells": [
+        "14987ee1"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T19:40:42.751197+00:00",
+        "notebook_sha256": "ac451689ce3145192515ee9043922e275b188d3aa50f8228a9e9afe8a1ac99f2",
+        "catalog_sha256": [
+          "46852efd1caa1a15eabf8aa68e0cfab5b23e3003d1df40210c38e37685038f46",
+          "f83553b767fffd534ac509212fb417cf41336305bba5910459a6c0f982628809"
+        ],
+        "purpose": "Count report support for complete URL values.",
+        "finding": "The synthetic updates.example.test URL appears in two reports and contributes one distinct typed URL; complete returned values are aggregation keys."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "extract_emails"
+      },
+      "notebook": "01_count_report_support_not_mentions.ipynb",
+      "sql": [
+        {
+          "cell": "fc90d8e6",
+          "reference": "ioc.main.extract_emails"
+        }
+      ],
+      "narrative_cells": [
+        "3fb586b5"
+      ],
+      "result_cells": [
+        "b611012b"
+      ],
+      "interpretation_cells": [
+        "14987ee1"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T19:40:42.751197+00:00",
+        "notebook_sha256": "ac451689ce3145192515ee9043922e275b188d3aa50f8228a9e9afe8a1ac99f2",
+        "catalog_sha256": [
+          "46852efd1caa1a15eabf8aa68e0cfab5b23e3003d1df40210c38e37685038f46",
+          "f83553b767fffd534ac509212fb417cf41336305bba5910459a6c0f982628809"
+        ],
+        "purpose": "Preserve an email candidate separately from network host categories.",
+        "finding": "The defanged email in R1 is restored during extraction and appears as one email report-indicator row; its host is not double-reported as a bare domain."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "extract_domains"
+      },
+      "notebook": "01_count_report_support_not_mentions.ipynb",
+      "sql": [
+        {
+          "cell": "fc90d8e6",
+          "reference": "ioc.main.extract_domains"
+        }
+      ],
+      "narrative_cells": [
+        "3fb586b5"
+      ],
+      "result_cells": [
+        "b611012b"
+      ],
+      "interpretation_cells": [
+        "14987ee1"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T19:40:42.751197+00:00",
+        "notebook_sha256": "ac451689ce3145192515ee9043922e275b188d3aa50f8228a9e9afe8a1ac99f2",
+        "catalog_sha256": [
+          "46852efd1caa1a15eabf8aa68e0cfab5b23e3003d1df40210c38e37685038f46",
+          "f83553b767fffd534ac509212fb417cf41336305bba5910459a6c0f982628809"
+        ],
+        "purpose": "Distinguish free-standing domains from hosts already claimed by URLs/emails.",
+        "finding": "review.example.test appears in two reports as a bare domain; URL/email hosts are excluded within their report. The separate release diagnostic transparently exposes two known path/local-part false positives."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "extract_hashes"
+      },
+      "notebook": "01_count_report_support_not_mentions.ipynb",
+      "sql": [
+        {
+          "cell": "fc90d8e6",
+          "reference": "ioc.main.extract_hashes"
+        }
+      ],
+      "narrative_cells": [
+        "3fb586b5"
+      ],
+      "result_cells": [
+        "b611012b"
+      ],
+      "interpretation_cells": [
+        "14987ee1"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T19:40:42.751197+00:00",
+        "notebook_sha256": "ac451689ce3145192515ee9043922e275b188d3aa50f8228a9e9afe8a1ac99f2",
+        "catalog_sha256": [
+          "46852efd1caa1a15eabf8aa68e0cfab5b23e3003d1df40210c38e37685038f46",
+          "f83553b767fffd534ac509212fb417cf41336305bba5910459a6c0f982628809"
+        ],
+        "purpose": "Track a repeated digest-shaped token by report while preserving its recognized type.",
+        "finding": "The same digest appears in R1/R3: two report-indicator pairs, one distinct value. hash_type assigns MD5 shape, without computing or verifying any file digest."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "extract_cves"
+      },
+      "notebook": "01_count_report_support_not_mentions.ipynb",
+      "sql": [
+        {
+          "cell": "fc90d8e6",
+          "reference": "ioc.main.extract_cves"
+        }
+      ],
+      "narrative_cells": [
+        "3fb586b5"
+      ],
+      "result_cells": [
+        "b611012b"
+      ],
+      "interpretation_cells": [
+        "14987ee1"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T19:40:42.751197+00:00",
+        "notebook_sha256": "ac451689ce3145192515ee9043922e275b188d3aa50f8228a9e9afe8a1ac99f2",
+        "catalog_sha256": [
+          "46852efd1caa1a15eabf8aa68e0cfab5b23e3003d1df40210c38e37685038f46",
+          "f83553b767fffd534ac509212fb417cf41336305bba5910459a6c0f982628809"
+        ],
+        "purpose": "Measure support for an illustrative vulnerability-shaped identifier.",
+        "finding": "The CVE-shaped token appears in R1/R2, yielding two report-indicator rows and one distinct value. It is explicitly not verified against an advisory registry."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "is_ioc"
+      },
+      "notebook": "01_count_report_support_not_mentions.ipynb",
+      "sql": [
+        {
+          "cell": "fc90d8e6",
+          "reference": "ioc.main.is_ioc"
+        }
+      ],
+      "narrative_cells": [
+        "2076f922"
+      ],
+      "result_cells": [
+        "fc90d8e6"
+      ],
+      "interpretation_cells": [
+        "2076f922"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T19:40:42.751197+00:00",
+        "notebook_sha256": "ac451689ce3145192515ee9043922e275b188d3aa50f8228a9e9afe8a1ac99f2",
+        "catalog_sha256": [
+          "46852efd1caa1a15eabf8aa68e0cfab5b23e3003d1df40210c38e37685038f46",
+          "f83553b767fffd534ac509212fb417cf41336305bba5910459a6c0f982628809"
+        ],
+        "purpose": "Interpret recognition alongside input availability rather than treating missing data as a negative result.",
+        "finding": "Known no-match and empty text return false, missing input remains NULL, and populated reports return true. The left-joined population audit preserves all six rows and reconciles scalar flags against candidate counts."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "hash_type"
+      },
+      "notebook": "01_count_report_support_not_mentions.ipynb",
+      "sql": [
+        {
+          "cell": "b611012b",
+          "reference": "ioc.main.hash_type"
+        }
+      ],
+      "narrative_cells": [
+        "d6ca1ab6"
+      ],
+      "result_cells": [
+        "b611012b"
+      ],
+      "interpretation_cells": [
+        "14987ee1"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T19:40:42.751197+00:00",
+        "notebook_sha256": "ac451689ce3145192515ee9043922e275b188d3aa50f8228a9e9afe8a1ac99f2",
+        "catalog_sha256": [
+          "46852efd1caa1a15eabf8aa68e0cfab5b23e3003d1df40210c38e37685038f46",
+          "f83553b767fffd534ac509212fb417cf41336305bba5910459a6c0f982628809"
+        ],
+        "purpose": "Assign the recognized digest form to the typed aggregation key.",
+        "finding": "The supplied 32-digit hexadecimal digest is labeled md5, joined to the registry hash group and counted across two reports; this is format recognition, not verification of an algorithm actually used on a file."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "ioc_types"
+      },
+      "notebook": "01_count_report_support_not_mentions.ipynb",
+      "sql": [
+        {
+          "cell": "b611012b",
+          "reference": "ioc.main.ioc_types"
+        }
+      ],
+      "narrative_cells": [
+        "71115936"
+      ],
+      "result_cells": [
+        "b611012b"
+      ],
+      "interpretation_cells": [
+        "14987ee1"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T19:40:42.751197+00:00",
+        "notebook_sha256": "ac451689ce3145192515ee9043922e275b188d3aa50f8228a9e9afe8a1ac99f2",
+        "catalog_sha256": [
+          "46852efd1caa1a15eabf8aa68e0cfab5b23e3003d1df40210c38e37685038f46",
+          "f83553b767fffd534ac509212fb417cf41336305bba5910459a6c0f982628809"
+        ],
+        "purpose": "Use the worker registry to label extracted categories and validate coverage of returned types.",
+        "finding": "Registry kind/name joins attach network/email/hash/vulnerability groupings to candidate rows; the all-types check prevents silently losing unrecognized categories in the inner join."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "defang"
+      },
+      "notebook": "01_count_report_support_not_mentions.ipynb",
+      "sql": [
+        {
+          "cell": "roundtrip-sql",
+          "reference": "ioc.main.defang"
+        }
+      ],
+      "narrative_cells": [
+        "roundtrip-question"
+      ],
+      "result_cells": [
+        "roundtrip-finding"
+      ],
+      "interpretation_cells": [
+        "roundtrip-finding"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T19:40:42.751197+00:00",
+        "notebook_sha256": "ac451689ce3145192515ee9043922e275b188d3aa50f8228a9e9afe8a1ac99f2",
+        "catalog_sha256": [
+          "46852efd1caa1a15eabf8aa68e0cfab5b23e3003d1df40210c38e37685038f46",
+          "f83553b767fffd534ac509212fb417cf41336305bba5910459a6c0f982628809"
+        ],
+        "purpose": "Keep display syntax distinct from exact typed aggregation keys.",
+        "finding": "The displayed table compares all eight unique keys, defanged display forms and restored keys. Network/email syntax changes while hash/CVE-shaped values can remain unchanged; the full keys remain aggregation inputs."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "refang"
+      },
+      "notebook": "01_count_report_support_not_mentions.ipynb",
+      "sql": [
+        {
+          "cell": "roundtrip-sql",
+          "reference": "ioc.main.refang"
+        }
+      ],
+      "narrative_cells": [
+        "roundtrip-question"
+      ],
+      "result_cells": [
+        "roundtrip-finding"
+      ],
+      "interpretation_cells": [
+        "roundtrip-finding"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T19:40:42.751197+00:00",
+        "notebook_sha256": "ac451689ce3145192515ee9043922e275b188d3aa50f8228a9e9afe8a1ac99f2",
+        "catalog_sha256": [
+          "46852efd1caa1a15eabf8aa68e0cfab5b23e3003d1df40210c38e37685038f46",
+          "f83553b767fffd534ac509212fb417cf41336305bba5910459a6c0f982628809"
+        ],
+        "purpose": "Demonstrate whether sharing-format transformations preserve these exact candidate keys.",
+        "finding": "All eight sampled keys round-trip exactly. This result is limited to extracted candidates; it neither proves reversibility for arbitrary prose nor validates indicator context."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "extract_iocs"
+      },
+      "notebook": "01_count_report_support_not_mentions.ipynb",
+      "sql": [
+        {
+          "cell": "df5b6997",
+          "reference": "ioc.main.extract_iocs"
+        }
+      ],
+      "narrative_cells": [
+        "7f00a51b"
+      ],
+      "result_cells": [
+        "df5b6997"
+      ],
+      "interpretation_cells": [
+        "7f00a51b"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T19:40:42.751197+00:00",
+        "notebook_sha256": "ac451689ce3145192515ee9043922e275b188d3aa50f8228a9e9afe8a1ac99f2",
+        "catalog_sha256": [
+          "46852efd1caa1a15eabf8aa68e0cfab5b23e3003d1df40210c38e37685038f46",
+          "f83553b767fffd534ac509212fb417cf41336305bba5910459a6c0f982628809"
+        ],
+        "purpose": "Inspect one constant-input extraction in context before interpreting syntax as threat intelligence.",
+        "finding": "Released v0.4.0 returns expected URL/email candidates plus tool.exe and first.last as false-positive domains. The current runtime diagnostic exports only the expected candidates; the notebook explicitly uses and labels the older release rather than pretending its behavior is current."
+      }
+    }
+  ]
+}

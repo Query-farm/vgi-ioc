@@ -1,0 +1,45 @@
+{
+  "description": "Known released URL-path/email-local-part false positives are visible; current source fixes them. These are intentionally not asserted identical.",
+  "results": {
+    "released": {
+      "columns": [
+        "type",
+        "value"
+      ],
+      "rows": [
+        [
+          "domain",
+          "first.last"
+        ],
+        [
+          "domain",
+          "tool.exe"
+        ],
+        [
+          "email",
+          "first.last@example.test"
+        ],
+        [
+          "url",
+          "https://updates.example.test/tool.exe"
+        ]
+      ]
+    },
+    "current": {
+      "columns": [
+        "type",
+        "value"
+      ],
+      "rows": [
+        [
+          "email",
+          "first.last@example.test"
+        ],
+        [
+          "url",
+          "https://updates.example.test/tool.exe"
+        ]
+      ]
+    }
+  }
+}
