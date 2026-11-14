@@ -17,27 +17,34 @@ use vgi::{ArgSpec, BindParams, BindResponse, FunctionExample, FunctionMetadata, 
 use vgi_rpc::{OutputCollector, Result, RpcError};
 
 use crate::ioc::{self, Indicator};
+use crate::meta::{example_list_json, Example};
 
 /// Guaranteed-runnable, catalog-qualified examples (VGI509/VGI515). Each `sql`
 /// is self-contained and re-runnable against an attached `ioc` worker, projects
 /// or aggregates real columns (never a bare `SELECT *`, VGI514), and carries a
 /// human-readable description. We omit `expected_result` deliberately — the
 /// linter only needs each query to execute cleanly, and pinning exact match
-/// output would be brittle.
-const EXECUTABLE_EXAMPLES: &str = r#"[
-  {
-    "description": "Extract every distinct indicator from a defanged report as (type, value) rows.",
-    "sql": "SELECT type, value FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5') ORDER BY type, value"
-  },
-  {
-    "description": "Count the distinct indicators found in a report, grouped by indicator type.",
-    "sql": "SELECT type, count(*) AS n FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5 and bad[at]evil[.]com') GROUP BY type ORDER BY type"
-  },
-  {
-    "description": "Keep only the network-layer indicators (IPs, domains, URLs) from a report.",
-    "sql": "SELECT value FROM ioc.main.extract_iocs('c2 hxxp://evil[.]com from 10[.]0[.]0[.]5') WHERE type IN ('ipv4', 'ipv6', 'url', 'domain') ORDER BY value"
-  }
-]"#;
+/// output would be brittle. The composed examples (joining `ioc_types`,
+/// defanging each row) are appended from `examples.rs`; all are offline and
+/// deterministic.
+fn executable_examples() -> String {
+    let mut list = vec![
+        Example {
+            description: "Extract every distinct indicator from a defanged report as (type, value) rows.",
+            sql: "SELECT type, value FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5') ORDER BY type, value",
+        },
+        Example {
+            description: "Count the distinct indicators found in a report, grouped by indicator type.",
+            sql: "SELECT type, count(*) AS n FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5 and bad[at]evil[.]com') GROUP BY type ORDER BY type",
+        },
+        Example {
+            description: "Keep only the network-layer indicators (IPs, domains, URLs) from a report.",
+            sql: "SELECT value FROM ioc.main.extract_iocs('c2 hxxp://evil[.]com from 10[.]0[.]0[.]5') WHERE type IN ('ipv4', 'ipv6', 'url', 'domain') ORDER BY value",
+        },
+    ];
+    list.extend_from_slice(crate::examples::composed_for("extract_iocs"));
+    example_list_json(&list)
+}
 
 pub struct ExtractIocs;
 
@@ -56,6 +63,7 @@ impl TableFunction for ExtractIocs {
     }
 
     fn metadata(&self) -> FunctionMetadata {
+        let examples = executable_examples();
         let mut tags = crate::meta::object_tags(
             "Extract All IOCs",
             "Scan free text and return every distinct indicator of compromise as (type, value) \
@@ -71,7 +79,7 @@ impl TableFunction for ExtractIocs {
              e-mail host is not double-reported as a bare domain.",
             r#"["extract iocs","all indicators","ioc table","type value","ipv4","ipv6","url","email","domain","hash","cve","threat report","refang","deduplicate","one-shot"]"#,
             "Extraction",
-            EXECUTABLE_EXAMPLES,
+            &examples,
         );
         tags.push((
             "vgi.result_columns_schema".into(),
@@ -83,7 +91,7 @@ impl TableFunction for ExtractIocs {
         ));
         // VGI509: at least one object must expose a verified-runnable
         // vgi.executable_examples tag. Reuse the same described list.
-        tags.push(("vgi.executable_examples".into(), EXECUTABLE_EXAMPLES.into()));
+        tags.push(("vgi.executable_examples".into(), examples));
         FunctionMetadata {
             description: "Extract every distinct IOC from text as (type, value) rows \
                           (refangs first; deduplicated)"

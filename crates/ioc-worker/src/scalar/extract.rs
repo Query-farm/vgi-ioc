@@ -131,19 +131,19 @@ impl Extract {
     pub fn hashes() -> Self {
         Extract {
             name: "extract_hashes",
-            desc: "Extract md5/sha1/sha256 hashes (refangs first) as VARCHAR[]",
+            desc: "Extract md5/sha1/sha256/sha512 hashes (refangs first) as VARCHAR[]",
             func: ioc::extract_hashes,
             example_sql: "SELECT UNNEST(ioc.main.extract_hashes('sample md5 d41d8cd98f00b204e9800998ecf8427e'));",
             example_desc: "Pull a file hash out of a report \
                            (returns 'd41d8cd98f00b204e9800998ecf8427e').",
             title: "Extract File Hashes",
-            desc_llm: "Extract every distinct file hash (md5, sha1, sha256) from free text and \
+            desc_llm: "Extract every distinct file hash (md5, sha1, sha256, sha512) from free text and \
                        return them as a `VARCHAR` list. The input is refanged first. Pair with \
                        `hash_type` to label each hash by algorithm. NULL in -> NULL list; no \
                        matches -> empty list.",
-            desc_md: "Extract md5/sha1/sha256 hashes from text as `VARCHAR[]` (refangs first), \
+            desc_md: "Extract md5/sha1/sha256/sha512 hashes from text as `VARCHAR[]` (refangs first), \
                       e.g. `extract_hashes('sample md5 d41d8cd9...')` -> `['d41d8cd9...']`.",
-            keywords: r#"["extract hashes","hash","md5","sha1","sha256","file hash","fingerprint","checksum","sample","refang","extract hash"]"#,
+            keywords: r#"["extract hashes","hash","md5","sha1","sha256","sha512","file hash","fingerprint","checksum","sample","refang","extract hash"]"#,
         }
     }
     pub fn cves() -> Self {
@@ -186,7 +186,11 @@ impl ScalarFunction for Extract {
                 self.desc_md,
                 self.keywords,
                 "Extraction",
-                &crate::meta::example_queries_json(self.example_desc, self.example_sql),
+                &crate::examples::object_examples_json(
+                    self.name,
+                    self.example_desc,
+                    self.example_sql,
+                ),
             ),
             ..Default::default()
         }

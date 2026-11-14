@@ -19,7 +19,7 @@
 /// Build the standard per-object discovery/description tags. `category` must
 /// name one of the entries in the schema's `vgi.categories` registry;
 /// `example_queries` is a JSON list of `{description, sql}` objects (see
-/// [`example_queries_json`]).
+/// [`example_list_json`]).
 pub fn object_tags(
     title: &str,
     description_llm: &str,
@@ -58,12 +58,25 @@ fn json_escape(s: &str) -> String {
     out
 }
 
-/// Build a single-element `vgi.example_queries` JSON list from one worked
-/// example (`sql`) and its human-readable `description` (VGI515).
-pub fn example_queries_json(description: &str, sql: &str) -> String {
-    format!(
-        "[{{\"description\": \"{}\", \"sql\": \"{}\"}}]",
-        json_escape(description),
-        json_escape(sql)
-    )
+/// One worked `{description, sql}` example.
+#[derive(Debug, Clone, Copy)]
+pub struct Example<'a> {
+    pub description: &'a str,
+    pub sql: &'a str,
+}
+
+/// Build a `vgi.example_queries` / `vgi.executable_examples` JSON list from
+/// worked examples, in order.
+pub fn example_list_json(examples: &[Example<'_>]) -> String {
+    let items: Vec<String> = examples
+        .iter()
+        .map(|e| {
+            format!(
+                "\n  {{\"description\": \"{}\", \"sql\": \"{}\"}}",
+                json_escape(e.description),
+                json_escape(e.sql)
+            )
+        })
+        .collect();
+    format!("[{}\n]", items.join(","))
 }

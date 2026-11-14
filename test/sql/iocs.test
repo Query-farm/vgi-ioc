@@ -28,6 +28,29 @@ ipv4	10.0.0.5
 md5	d41d8cd98f00b204e9800998ecf8427e
 url	http://evil.example.com/path
 
+# URL path segments (a.exe, gate.php) and e-mail local parts (first.last) are
+# part of their indicator, not standalone domains.
+query TT
+SELECT "type", value
+FROM extract_iocs('dropper hxxps://cdn[.]evil[.]com/a.exe and http://evil.com/gate.php, mail first.last@evil.org')
+ORDER BY "type", value;
+----
+email	first.last@evil.org
+url	http://evil.com/gate.php
+url	https://cdn.evil.com/a.exe
+
+# Composed: extract_iocs joined to the ioc_types registry.
+query TT
+SELECT t.kind, count(*) AS n
+FROM extract_iocs('c2 hxxp://evil[.]com/p and 198[.]51[.]100[.]4, sender ops[at]evil[.]com, sha1 da39a3ee5e6b4b0d3255bfef95601890afd80709, CVE-2023-4863') AS i
+JOIN ioc_types AS t ON t.name = i.type
+GROUP BY t.kind ORDER BY t.kind;
+----
+email	1
+hash	1
+network	2
+vulnerability	1
+
 # Deduplication: a repeated CVE appears once.
 query I
 SELECT count(*) FROM extract_iocs('CVE-2024-1234 and again CVE-2024-1234') WHERE "type" = 'cve';

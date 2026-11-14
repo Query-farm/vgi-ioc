@@ -20,6 +20,7 @@ Cargo.toml                          workspace; pins vgi = "0.51.0" (VGI protocol
 crates/ioc-worker/
   src/main.rs                       Worker::new(); registers scalars + table fn
   src/ioc.rs                        PURE logic (no Arrow): defang/refang, extractors, classifiers + unit tests
+  src/examples.rs                   composed multi-object examples, defined once, attached per object + schema
   src/arrow_io.rs                   VARCHAR reads + LIST(VARCHAR) builder + in-process scalar test harness
   src/scalar/{fang,extract,classify,version,mod}.rs   thin Arrow scalar adapters
   src/table/{extract_iocs,mod}.rs   thin Arrow table-producer adapter
@@ -45,6 +46,8 @@ still found. Only `defang`/`refang` themselves skip this. See the module docs in
 - URLs and e-mails "win" their host: a host already claimed by a URL/e-mail is
   not also emitted as a bare `domain` (avoids double-reporting in
   `extract_iocs`). `extract_domains` standalone still drops claimed hosts.
+  Dotted tokens *inside* a URL/e-mail match (path `a.exe`, local part
+  `first.last`) are never domains.
 - Private/reserved IPs are kept (real indicators in a report).
 - Domains require an alpha TLD (≥2 chars) — heuristic to avoid version strings.
 - Input bounded to `MAX_INPUT_BYTES` (4 MiB), truncated at a char boundary.

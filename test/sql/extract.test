@@ -47,6 +47,13 @@ SELECT UNNEST(extract_hashes('drop d41d8cd98f00b204e9800998ecf8427e to disk'));
 ----
 d41d8cd98f00b204e9800998ecf8427e
 
+# extract_hashes covers sha512 (128 hex chars) too; hash_type labels each.
+query T
+SELECT hash_type(h) FROM (SELECT UNNEST(extract_hashes('md5 ' || repeat('d', 32) || ' sha512 ' || repeat('f', 128))) AS h) ORDER BY 1;
+----
+md5
+sha512
+
 # A standalone domain is extracted; the URL host is not double-counted here.
 query T
 SELECT UNNEST(extract_domains('c2 at cdn[.]malware-host[.]net only'));

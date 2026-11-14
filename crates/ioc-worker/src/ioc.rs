@@ -279,9 +279,16 @@ pub fn extract_emails(text: &str) -> Vec<String> {
 pub fn extract_domains(text: &str) -> Vec<String> {
     let refanged = refang(bound(text));
     let claimed = claimed_hosts(&refanged);
+    let spans = claimed_spans(&refanged);
     let mut out = Vec::new();
     let mut seen = HashSet::new();
     for m in RE_DOMAIN.find_iter(&refanged) {
+        // A dotted token inside a URL (its path: `/a.exe`, `/gate.php`) or an
+        // e-mail (its local part: `first.last@`) is part of that indicator,
+        // not a standalone domain.
+        if spans.iter().any(|&(s, e)| m.start() < e && s < m.end()) {
+            continue;
+        }
         let cand = m.as_str();
         if is_standalone_domain(cand, &claimed) {
             push_unique(&mut out, &mut seen, cand.to_ascii_lowercase());
@@ -290,9 +297,8 @@ pub fn extract_domains(text: &str) -> Vec<String> {
     out
 }
 
-/// Extract MD5/SHA1/SHA256 hashes (the three the task lists; SHA512 is reported
-/// by [`hash_type`] but a 128-hex run is rarer in prose and still surfaced via
-/// [`extract_iocs`]).
+/// Extract MD5/SHA1/SHA256/SHA512 hashes: every 32/40/64/128-hex-char run that
+/// [`hash_type`] recognizes, lower-cased.
 pub fn extract_hashes(text: &str) -> Vec<String> {
     let refanged = refang(bound(text));
     let mut out = Vec::new();
@@ -335,6 +341,16 @@ fn claimed_hosts(refanged: &str) -> HashSet<String> {
         }
     }
     claimed
+}
+
+/// Byte spans of every URL and e-mail match in `refanged` text. Domain
+/// candidates overlapping one of these are fragments of that indicator.
+fn claimed_spans(refanged: &str) -> Vec<(usize, usize)> {
+    RE_URL
+        .find_iter(refanged)
+        .chain(RE_EMAIL.find_iter(refanged))
+        .map(|m| (m.start(), m.end()))
+        .collect()
 }
 
 /// Extract the host (authority minus userinfo/port/path) from a URL string.
@@ -514,6 +530,25 @@ mod tests {
         // A standalone domain IS reported.
         let d = extract_domains("traffic seen to cdn.malware-host.net then nowhere");
         assert_eq!(d, vec!["cdn.malware-host.net"]);
+    }
+
+    #[test]
+    fn url_path_and_email_local_part_are_not_domains() {
+        // `a.exe` / `gate.php` are URL path segments and `first.last` is an
+        // e-mail local part — none of them is a standalone domain.
+        let text = "dropper hxxps://cdn[.]evil[.]com/a.exe and http://evil.com/gate.php, \
+                    mail first.last@evil.org, also see other-host.net";
+        assert_eq!(extract_domains(text), vec!["other-host.net"]);
+        assert!(!extract_iocs(text)
+            .iter()
+            .any(|r| r.kind == "domain" && r.value != "other-host.net"));
+    }
+
+    #[test]
+    fn extract_hashes_includes_sha512() {
+        let sha512 = "f".repeat(128);
+        let text = format!("md5 {} sha512 {sha512}", "d".repeat(32));
+        assert_eq!(extract_hashes(&text), vec!["d".repeat(32), sha512]);
     }
 
     #[test]

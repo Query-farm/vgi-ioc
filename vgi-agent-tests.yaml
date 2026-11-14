@@ -58,3 +58,11 @@ tasks:
     reference_sql: "SELECT count(*) AS n FROM ioc.main.ioc_types"
     unordered: true
     ignore_column_names: true
+  - name: "count-iocs-by-group"
+    reference_sql: "SELECT t.kind, count(*) AS n FROM ioc.main.extract_iocs('c2 hxxp://evil[.]com/p and 198[.]51[.]100[.]4, sender ops[at]evil[.]com, dropper sha1 da39a3ee5e6b4b0d3255bfef95601890afd80709, exploits CVE-2023-4863 and CVE-2024-3094') AS i JOIN ioc.main.ioc_types AS t ON t.name = i.type GROUP BY t.kind ORDER BY t.kind"
+    unordered: true
+    ignore_column_names: true
+  - name: "alert-hash-algorithms"
+    reference_sql: "WITH alerts(id, body) AS (VALUES (1, 'md5 d41d8cd98f00b204e9800998ecf8427e seen'), (2, 'sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 and md5 0cc175b9c0f1b6a831c399e269772661'), (3, 'no artifacts')) SELECT ioc.main.hash_type(h.hash) AS algorithm, count(*) AS n FROM alerts, UNNEST(ioc.main.extract_hashes(alerts.body)) AS h(hash) GROUP BY algorithm ORDER BY algorithm"
+    unordered: true
+    ignore_column_names: true

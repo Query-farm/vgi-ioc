@@ -46,6 +46,16 @@ ORDER BY type, value;
 -- type | value
 -- ipv4 | 10.0.0.5
 -- url  | http://evil.com
+
+-- Combine them: label each extracted indicator with its group via the ioc_types registry.
+SELECT t.kind, i.type, i.value
+FROM extract_iocs('phish from ops[at]evil[.]com exploiting CVE-2021-44228 via 10[.]0[.]0[.]5') AS i
+JOIN ioc_types AS t ON t.name = i.type
+ORDER BY t.kind, i.type;
+-- kind          | type  | value
+-- email         | email | ops@evil.com
+-- network       | ipv4  | 10.0.0.5
+-- vulnerability | cve   | CVE-2021-44228
 ```
 
 ## Quick start
@@ -94,7 +104,7 @@ To build the worker yourself, see [Building & testing](#building--testing).
 | `extract_domains(text)` | `VARCHAR[]` | Bare domains (URL/e-mail hosts excluded — see policy). |
 | `extract_urls(text)` | `VARCHAR[]` | `http(s)://` / `ftp://` URLs. |
 | `extract_emails(text)` | `VARCHAR[]` | E-mail addresses. |
-| `extract_hashes(text)` | `VARCHAR[]` | MD5 / SHA1 / SHA256 file hashes. |
+| `extract_hashes(text)` | `VARCHAR[]` | MD5 / SHA1 / SHA256 / SHA512 file hashes. |
 | `extract_cves(text)` | `VARCHAR[]` | CVE identifiers (`CVE-YYYY-NNNN+`). |
 | `hash_type(s)` | `VARCHAR` | `'md5'` / `'sha1'` / `'sha256'` / `'sha512'` by length, else `NULL`. |
 | `is_ioc(text)` | `BOOLEAN` | Whether the text contains **any** recognizable IOC. |

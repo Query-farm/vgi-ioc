@@ -28,11 +28,13 @@
 //! in reports are still extracted (see `ioc.rs` docs).
 
 mod arrow_io;
+mod examples;
 mod ioc;
 mod meta;
 mod scalar;
 mod table;
 
+use meta::{example_list_json, Example};
 use vgi::catalog::{CatSchema, CatView, CatalogModel};
 use vgi::Worker;
 
@@ -132,17 +134,20 @@ fn ioc_types_view() -> CatView {
             ),
             (
                 "vgi.example_queries".to_string(),
-                r#"[
-  {
-    "description": "List the network-layer indicator types and the function that extracts each.",
-    "sql": "SELECT name, extractor FROM ioc.main.ioc_types WHERE kind = 'network' ORDER BY name"
-  },
-  {
-    "description": "Count how many indicator types fall into each coarse group.",
-    "sql": "SELECT kind, count(*) AS n_types FROM ioc.main.ioc_types GROUP BY kind ORDER BY kind"
-  }
-]"#
-                .to_string(),
+                {
+                    let mut list = vec![
+                        Example {
+                            description: "List the network-layer indicator types and the function that extracts each.",
+                            sql: "SELECT name, extractor FROM ioc.main.ioc_types WHERE kind = 'network' ORDER BY name",
+                        },
+                        Example {
+                            description: "Count how many indicator types fall into each coarse group.",
+                            sql: "SELECT kind, count(*) AS n_types FROM ioc.main.ioc_types GROUP BY kind ORDER BY kind",
+                        },
+                    ];
+                    list.extend_from_slice(examples::composed_for("ioc_types"));
+                    example_list_json(&list)
+                },
             ),
         ],
         column_comments: vec![
@@ -172,6 +177,35 @@ fn ioc_types_view() -> CatView {
         ],
         ..Default::default()
     }
+}
+
+/// The schema-level `vgi.example_queries` list: single-function examples first,
+/// then the composed examples (defined once in `examples.rs`).
+fn schema_example_queries() -> String {
+    let mut list = vec![
+        Example {
+            description: "Extract every distinct indicator from a defanged report as (type, value) rows.",
+            sql: "SELECT type, value FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5') ORDER BY type, value",
+        },
+        Example {
+            description: "Count the indicators in a report, grouped by type.",
+            sql: "SELECT type, count(*) AS n FROM ioc.main.extract_iocs('c2 hxxp://evil[.]com from 10[.]0[.]0[.]5 and bad[at]evil[.]com') GROUP BY type ORDER BY type",
+        },
+        Example {
+            description: "Defang a live URL so it is safe to paste into a report.",
+            sql: "SELECT ioc.main.defang('http://evil.com/x') AS safe",
+        },
+        Example {
+            description: "Pull the defanged IPv4 addresses out of a report, one per row.",
+            sql: "SELECT UNNEST(ioc.main.extract_ipv4('beacon from 10[.]0[.]0[.]5')) AS ip",
+        },
+        Example {
+            description: "Classify a hex digest by algorithm.",
+            sql: "SELECT ioc.main.hash_type('d41d8cd98f00b204e9800998ecf8427e') AS algorithm",
+        },
+    ];
+    list.extend_from_slice(&examples::COMPOSED);
+    example_list_json(&list)
 }
 
 fn catalog_metadata(name: &str) -> CatalogModel {
@@ -312,6 +346,14 @@ fn catalog_metadata(name: &str) -> CatalogModel {
   {
     "name": "browse-ioc-types",
     "prompt": "Using the ioc_types reference table in the ioc worker, return a single count of how many distinct indicator types it can recognize."
+  },
+  {
+    "name": "count-iocs-by-group",
+    "prompt": "From the defanged report 'c2 hxxp://evil[.]com/p and 198[.]51[.]100[.]4, sender ops[at]evil[.]com, dropper sha1 da39a3ee5e6b4b0d3255bfef95601890afd80709, exploits CVE-2023-4863 and CVE-2024-3094', count the distinct indicators in each coarse indicator group as defined by the ioc worker's indicator type registry (groups such as network, email, hash, vulnerability). Return two columns: the group name (VARCHAR) and the number of indicators in it (BIGINT), one row per group that has at least one indicator."
+  },
+  {
+    "name": "alert-hash-algorithms",
+    "prompt": "Given this alerts table: WITH alerts(id, body) AS (VALUES (1, 'md5 d41d8cd98f00b204e9800998ecf8427e seen'), (2, 'sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 and md5 0cc175b9c0f1b6a831c399e269772661'), (3, 'no artifacts')), count how many file hashes across all alerts were produced by each hash algorithm. Return two columns: the algorithm name as the ioc worker labels it (VARCHAR, e.g. md5) and the hash count (BIGINT), one row per algorithm."
   }
 ]"#
                 .to_string(),
@@ -388,29 +430,7 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                 // columns rather than a bare SELECT * (VGI514).
                 (
                     "vgi.example_queries".to_string(),
-                    r#"[
-  {
-    "description": "Extract every distinct indicator from a defanged report as (type, value) rows.",
-    "sql": "SELECT type, value FROM ioc.main.extract_iocs('beacon to hxxp://evil[.]com from 10[.]0[.]0[.]5') ORDER BY type, value"
-  },
-  {
-    "description": "Count the indicators in a report, grouped by type.",
-    "sql": "SELECT type, count(*) AS n FROM ioc.main.extract_iocs('c2 hxxp://evil[.]com from 10[.]0[.]0[.]5 and bad[at]evil[.]com') GROUP BY type ORDER BY type"
-  },
-  {
-    "description": "Defang a live URL so it is safe to paste into a report.",
-    "sql": "SELECT ioc.main.defang('http://evil.com/x') AS safe"
-  },
-  {
-    "description": "Pull the defanged IPv4 addresses out of a report, one per row.",
-    "sql": "SELECT UNNEST(ioc.main.extract_ipv4('beacon from 10[.]0[.]0[.]5')) AS ip"
-  },
-  {
-    "description": "Classify a hex digest by algorithm.",
-    "sql": "SELECT ioc.main.hash_type('d41d8cd98f00b204e9800998ecf8427e') AS algorithm"
-  }
-]"#
-                    .to_string(),
+                    schema_example_queries(),
                 ),
             ],
             views: vec![ioc_types_view()],
